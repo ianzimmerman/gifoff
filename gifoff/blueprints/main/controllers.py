@@ -1,11 +1,7 @@
 from flask import Blueprint, url_for, render_template, request, redirect, abort, flash, session, current_app, jsonify
 from flask_security import current_user, login_required
 
-# from caudit.blueprints.main.helpers import attr_cleanse, AuditGroups, SessionManager
-# from caudit.forms import item_form, GapForm, ChartForm, InventoryForm, ExcelUpload, AuditForm, EmailForm, FilterForm, \
-#     CriterionForm, GroupForm
-from gifoff.helpers import IDSlugConverter, add_app_url_map_converter
-# from caudit.models import db, db_commit, get_count, User, Audit, AuditUsers, Group, Criterion, Item, Response, GapCharts
+from .helpers import IDSlugConverter, add_app_url_map_converter
 
 Blueprint.add_app_url_map_converter = add_app_url_map_converter
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from gifoff.factories.app import create_app
+from app.factories.app import create_app
 
 application = create_app()
 

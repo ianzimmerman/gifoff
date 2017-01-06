@@ -1,2 +1,2 @@
-# giffoff
-Gif Competition
+# flask-template
+a baseline flask scaffold

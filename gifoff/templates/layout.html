@@ -14,33 +14,76 @@
 
     <!-- Bootstrap core CSS -->
     <link href="{{ url_for('static', filename='css/bootstrap-flex.min.css') }}" rel="stylesheet">
-
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
   </head>
 
   <body>
-
-    <nav class="navbar navbar-fixed-top navbar-dark bg-inverse">
-      <a class="navbar-brand" href="#">Project name</a>
-      <ul class="nav navbar-nav">
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Contact</a>
-        </li>
-      </ul>
-    </nav>
-
+    {%- set navigation_bar = [
+            ('main.index', 'Home', [])
+        ] -%}
     <div class="container">
-      {% block content %}
-      {% endblock %}
+        <div class="row">
+            <nav class="navbar navbar-dark bg-info col-xs-12">
+              <button class="navbar-toggler hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"></button>
+              <div class="collapse navbar-toggleable-md" id="navbarResponsive">
+                  <a class="navbar-brand" href="{{ url_for('main.index') }}" class="show-for-medium" style="">
+                        {{ config.APP_NAME }}
+                  </a>
+                <ul class="nav navbar-nav">
+                    {%- for endpoint, text, children in navigation_bar -%}
+                        <li class="nav-item {{ 'active' if request.endpoint == endpoint }}">
+                            <a class="nav-link" href="{{ url_for(endpoint) }}">{{ text }}</a>
+                        </li>
+                    {%- endfor -%}
+                    {% block navigation %}
+                    {% endblock %}
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.has_role('ADMIN') %}
+                            <li class="nav-item float-lg-right">
+                                <a class="nav-link" href="{{ url_for('admin.index') }}">Admin</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item float-lg-right">
+                            <a class="nav-link" href="{{ url_for('security.logout') }}">Sign out</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('security.register') }}">Register</a>
+                        </li>
+                        <li  class="nav-item float-lg-right">
+                            <a class="nav-link" href="{{ url_for('security.login') }}">Sign in</a>
+                        </li>
+                    {% endif %}
+                </ul>
+              </div>
+            </nav>
+        </div>
+        <div class="row">
+            {% block breadcrumb %}{% endblock %}
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row">
+                    <div class="col-sm-12" id="alert-messages">
+                        {% for c, m in messages %}
+                            <div class="alert alert-{{ c }}">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                                <i class="fa fa-exclamation-triangle"></i> {{ m|safe }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+        <div class="main-content">
+          {% block content %}
+          {% endblock %}
+        </div>
     </div>
-    <!-- /.container -->
 	<div class="container-fluid">
       {% block content_fluid %}
       {% endblock %}
@@ -53,8 +96,27 @@
 <!--     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.2.0/js/tether.min.js" integrity="sha384-Plbmg8JY28KFelvJVai01l8WyZzrYWG825m+cZ0eDDS1f7d/js6ikvy1+X+guPIB" crossorigin="anonymous"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {{ JSGlue.include() }}
     {% block scripts %}
     {% endblock %}
+    {%- if config.GOOGLE_ANALYTICS %}
+        <script>
+            (function (i, s, o, g, r, a, m) {
+                i['GoogleAnalyticsObject'] = r;
+                i[r] = i[r] || function () {
+                        (i[r].q = i[r].q || []).push(arguments)
+                    }, i[r].l = 1 * new Date();
+                a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0];
+                a.async = 1;
+                a.src = g;
+                m.parentNode.insertBefore(a, m)
+            })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+            ga('create', '{{ config.GOOGLE_ANALYTICS }}', 'auto');
+            ga('send', 'pageview');
+        </script>
+    {% endif -%}
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <!--     <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
   </body>

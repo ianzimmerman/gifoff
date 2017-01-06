@@ -41,9 +41,8 @@ class Base(db.Model):
                 return False
 
 
-###
-# Flask-User
-###
+# User Classes
+
 
 class User(Base, UserMixin):
     __tablename__ = "user"
