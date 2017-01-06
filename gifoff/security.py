@@ -1,5 +1,6 @@
 from flask_security import Security, SQLAlchemyUserDatastore, utils
 from flask_security.forms import RegisterForm, ConfirmRegisterForm
+from sqlalchemy import func
 from wtforms import StringField
 from wtforms.validators import DataRequired, Regexp
 
@@ -28,7 +29,8 @@ def create_admin(app, db, user_datastore):
 
         user_datastore.create_user(username=app.config['APP_ADMIN'],
                                    email=app.config['APP_EMAIL'],
-                                   password=utils.encrypt_password(app.config['APP_PASSWORD'])
+                                   password=utils.encrypt_password(app.config['APP_PASSWORD']),
+                                   confirmed_at=db.func.current_timestamp()
                                    )
         if db_commit():
             for role in admin_roles:

@@ -22,7 +22,7 @@ def get_count(q):
 class Base(db.Model):
     __abstract__ = True
 
-    pk = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(),
                               onupdate=db.func.current_timestamp())
@@ -79,5 +79,5 @@ class Role(Base, RoleMixin):
 # user relationships
 class UserRoles(Base):
     __tablename__ = "user_roles"
-    user_pk = db.Column(db.Integer(), db.ForeignKey('user.pk', ondelete='CASCADE'))
-    role_pk = db.Column(db.Integer(), db.ForeignKey('role.pk', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
+    role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
