@@ -18,6 +18,11 @@ from .models import db, User
 
 class GroupForm(Form):
     name = StringField('Name', [validators.DataRequired('Name Required'), validators.Regexp(r'^[\w.@+-]+$')])
-    description = TextAreField('Description', [validators.Optional()])
+    description = TextAreaField('Description', [validators.Optional()])
     pin = StringField('Access PIN', [validators.DataRequired('PIN Required'), validators.NumberRange(0,999999)])
     
+
+class ChallengeEntry(Form):
+    url = StringField('URL', validators=[validators.URL('Please enter a valid URL'), validators.DataRequired('Please Enter a value')])
+    prompt_id = HiddenField()
+    entry_id = HiddenField()

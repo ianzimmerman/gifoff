@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block title %}Enter {{ challenge.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge, user=current_user.username) }}{% endblock %}
+{% block content %}
+    <div class="">
+        <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
+        <h2>Your Entries</h2>
+            {% for p in challenge.prompts %}
+            <form class="form" action="" method="post" id="form{{p.id}}">
+                {{ forms[p.id].hidden_tag() }}
+                <dl>
+                    <dt>{{ p.prompt }}</dt>
+                    <dd>
+                        <div class="input-group">
+                          {{ forms[p.id].url(class="form-control", type="url") }}
+                          <span class="input-group-btn">
+                            <button class="btn btn-primary" type="submit">Save</button>
+                          </span>
+                        </div>
+                    </dd>
+                </dl>
+            </form>
+            {% endfor %}
+    </div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+$( ".form" ).submit(function( event ) {
+  
+  event.preventDefault();
+  
+  var form_data = $( this ).serialize();
+  console.log(form_data);
+  
+  $.post("{{ url_for('main.enter', challenge_id=challenge) }}", form_data, function (data){
+        console.log(data);
+  })
+  .done(function(){
+      
+  })
+  .fail(function(){
+  
+  });
+  
+});
+</script>
+{% endblock %}

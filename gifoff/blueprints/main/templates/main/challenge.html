@@ -15,7 +15,7 @@
     <h2>Judge: {{challenge.judge.username}}</h2>
     {% if challenge.active == true %}
     <h2>Ends in: {{ challenge.time_left }}</h2>
-    <button class="btn btn-primary">Enter Now!</button>
+    <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Enter Now!</a>
     {% else %}
     <h2>Winner</h2>
     <ul>

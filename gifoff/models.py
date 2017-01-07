@@ -150,7 +150,7 @@ class Prompt(Base):
         
     @hybrid_method
     def user_entry(self, user):
-        return db.session.query(Entry).filter(Entry.prompt_id==self.id, Entry.player==user).first()
+        return Entry.get_or_create(prompt_id=self.id, player=user)
     
     def __repr__(self):
         return '{} > {}'.format(self.challenge.name, self.prompt)
@@ -164,7 +164,7 @@ class Entry(Base):
     player_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     player = db.relationship('User', backref=db.backref('entries', lazy='dynamic', cascade='all, delete'))
     
-    url = db.Column(db.String(250), nullable=False, unique=False)
+    url = db.Column(db.String(250), nullable=True, unique=False)
     score = db.Column(db.Integer())
     
     challenge_id = association_proxy('prompt', 'challenge_id')
