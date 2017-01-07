@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}{{ user.username }}'s Entries to {{ challenge.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge, user=user.username) }}{% endblock %}
+{% block content %}
+    <div class="">
+        <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
+        <h2>{{user.username}}'s Entries</h2>
+        <dl>
+            {% for p in challenge.prompts %}
+            <dt>{{ p.prompt }} | Score: {{ p.user_entry(user).score }}</dt>
+            <dd><img src="{{ p.user_entry(user).url }}"></dd>
+            {% endfor %}
+        </dl>
+    </div>
+{% endblock %}

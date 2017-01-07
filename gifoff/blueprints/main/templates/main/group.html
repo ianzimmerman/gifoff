@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}Groups{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(group=group) }}{% endblock %}
+{% block content %}
+    <div class="">
+        <h1>{{ group.name }} <small>owned by {{ group.owner.username }}</small></h1>
+        <h2>Members</h2>
+        <ul>
+            {% for p in group.players %}
+            <li>{{ p.username }}</li>
+            {% endfor %}
+        </ul>
+        {% if current_user in group.authors %}
+        <p>
+            <a href="" class="btn btn-primary">Create New Challenge</a>
+        </p>
+        {% endif %}
+        <h2>Active Challenges</h2>
+        <ul>  
+            {% for c in group.challenges if c.active == true %}
+            <li><a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a></li>
+            {% endfor %}
+        </ul>
+        <h2>Old Challenges</h2>
+        <ul>
+            {% for c in group.challenges if c.active == false %}
+            <li><a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

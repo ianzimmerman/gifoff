@@ -1,0 +1,25 @@
+{% macro breadcrumbs(level=2, group=none, challenge=none) %}
+<nav aria-label="You are here:" role="navigation" class="container hidden-sm-down">
+  <ol class="breadcrumb top-crumb" style="margin-bottom: 5px; font-size: x-small;">
+	<li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+	{%- if group is not none -%}
+	<li class="breadcrumb-item">
+		<a href="{{ url_for('main.group', group_id=group) }}">{{group.name}}</a>
+	</li>
+    	{%- if challenge is not none -%}
+        <li class="breadcrumb-item">
+    	    <a href="{{ url_for('main.challenge', group_id=group, challenge_id=challenge) }}">{{ challenge.name }}</a>
+        </li>
+        {%- endif -%}
+    {%- endif %}
+<!--
+    <li class="breadcrumb-item active">
+      {{ request.endpoint.split('.')[1].replace('_', ' ').title() }}
+    </li>
+-->
+    {%- for k, v in kwargs.items() -%}
+    	<li class="breadcrumb-item">{{ v }}</li>
+    {%- endfor -%}
+  </ol>
+</nav>
+{% endmacro %}

@@ -2,7 +2,7 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_security import current_user, roles_required
 
-from .models import db, User, Role
+from .models import db, User, Role, Group, Challenge, Prompt, Entry
 
 
 class IndexView(AdminIndexView):
@@ -42,6 +42,10 @@ class RoleModelView(CommonModelView):
 views = [
     dict(view=User, cls=UserModelView),
     dict(view=Role, cls=RoleModelView),
+    dict(view=Group, cls=CommonModelView),
+    dict(view=Challenge, cls=CommonModelView),
+    dict(view=Prompt, cls=CommonModelView),
+    dict(view=Entry, cls=CommonModelView),
 ]
 
 

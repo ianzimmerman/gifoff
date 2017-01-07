@@ -1,5 +1,5 @@
 from flask_wtf import Form
-from wtforms import TextField, HiddenField, StringField, FileField, BooleanField, \
+from wtforms import HiddenField, StringField, BooleanField, \
     SelectField, SelectMultipleField, TextAreaField, SubmitField, validators
 
 
@@ -15,3 +15,9 @@ from .models import db, User
 #     audit_id = HiddenField('Audit ID', [validators.DataRequired('No Audit ID Detected')])
 #     email = StringField('New User', [validators.InputRequired('Email Required'), validate_email])
 #     button = SubmitField('Add Access')
+
+class GroupForm(Form):
+    name = StringField('Name', [validators.DataRequired('Name Required'), validators.Regexp(r'^[\w.@+-]+$')])
+    description = TextAreField('Description', [validators.Optional()])
+    pin = StringField('Access PIN', [validators.DataRequired('PIN Required'), validators.NumberRange(0,999999)])
+    

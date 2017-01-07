@@ -1,4 +1,4 @@
-
+{% from "macros.html" import breadcrumbs %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,14 +18,13 @@
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
   </head>
-
   <body>
     {%- set navigation_bar = [
-            ('main.index', 'Home', [])
+            ('main.index', 'Home', []),
         ] -%}
     <div class="container">
         <div class="row">
-            <nav class="navbar navbar-dark bg-info col-xs-12">
+            <nav class="navbar navbar-toggleable-md col-xs-12">
               <button class="navbar-toggler hidden-lg-up" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"></button>
               <div class="collapse navbar-toggleable-md" id="navbarResponsive">
                   <a class="navbar-brand" href="{{ url_for('main.index') }}" class="show-for-medium" style="">
@@ -37,8 +36,26 @@
                             <a class="nav-link" href="{{ url_for(endpoint) }}">{{ text }}</a>
                         </li>
                     {%- endfor -%}
+                    
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Groups
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                              {% for pg in current_user.player_of %}
+                              <a class="dropdown-item" href="{{ url_for('main.group', group_id=pg) }}">{{pg.name}}</a>
+                              {% endfor %}
+                              <div class="dropdown-divider"></div>
+                              <a class="dropdown-item" href="#">Join Group</a>
+                              <a class="dropdown-item" href="#">Create Group</a>
+                            </div>
+                        </li>
+                    {% endif %}
+                    
                     {% block navigation %}
                     {% endblock %}
+                    
                     {% if current_user.is_authenticated %}
                         {% if current_user.has_role('ADMIN') %}
                             <li class="nav-item float-lg-right">

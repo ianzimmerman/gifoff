@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}{{ challenge.name }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
+{% block content %}
+    <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
+    <p class="lead">
+        {{ challenge.description }}
+    </p>
+    <h2>Prompts</h2>
+    <ul>
+        {% for p in challenge.prompts %}
+        <li>{{ p.prompt }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Judge: {{challenge.judge.username}}</h2>
+    {% if challenge.active == true %}
+    <h2>Ends in: {{ challenge.time_left }}</h2>
+    <button class="btn btn-primary">Enter Now!</button>
+    {% else %}
+    <h2>Winner</h2>
+    <ul>
+        <li><a href="{{url_for('main.entry', challenge_id=challenge, user_id=challenge.winner_id) }}">{{ challenge.winner.username }}</a></li>
+    </ul>
+    <h2>Players</h2>
+    <ul>
+        {% for p in challenge.players if p != challenge.winner %}
+        <li><a href="{{url_for('main.entry', challenge_id=challenge, user_id=p.id) }}">{{ p.username }}</a></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endblock %}
