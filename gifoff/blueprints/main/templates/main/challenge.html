@@ -11,6 +11,7 @@
         {% for p in challenge.prompts %}
         <li>{{ p.prompt }}</li>
         {% endfor %}
+        <li></li>
     </ul>
     <h2>Judge: {{challenge.judge.username}}</h2>
     {% if challenge.active == true %}

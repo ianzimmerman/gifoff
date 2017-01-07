@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta    
 
 from flask import Blueprint, url_for, render_template, request, redirect, abort, flash, session, current_app, jsonify
 from flask_security import current_user, login_required
 
 from .helpers import IDSlugConverter, add_app_url_map_converter
 from ...models import db_commit, User, Group, Challenge, Entry, Prompt
-from ...forms import GroupForm, ChallengeEntry
+from ...forms import GroupForm, ChallengeEntry, ChallengeForm
 
 Blueprint.add_app_url_map_converter = add_app_url_map_converter
 
@@ -55,13 +55,35 @@ def enter(challenge_id):
             entry = Entry.query.get(int(f.entry_id.data))
             entry.url = f.url.data
             if db_commit():
-                return jsonify('{status: complete}')
+                return jsonify({'response': 'OK', 'prompt_id': f.prompt_id.data}), 200
             else:
-                return jsonify('{status: error}')
+                return jsonify({'response': 'ERROR', 'prompt_id': f.prompt_id.data}), 304
+        elif f.errors:
+            return jsonify({'response': 'ERROR', 'errors':f.errors, 'prompt_id': f.prompt_id.data}), 200
         
         forms[p.id] = f
-        
-        
     
     return render_template('main/enter.html', challenge=challenge, forms=forms)
     
+@main.route('<id_slug:group_id>/new-challenge', methods=['GET', 'POST'])
+def new_challenge(group_id):
+    group = Group.query.get_or_404(group_id)
+    
+    date_range = {'s': datetime.now(), 'e': datetime.now() + timedelta(hours=4)}
+    print(request.form)
+    form = ChallengeForm(start_time=date_range['s'], end_time=date_range['e'])
+    if form.validate_on_submit():
+        c = Challenge(group=group,
+                        author=current_user, 
+                        name=form.name.data, 
+                        description=form.description.data, 
+                        start_time=form.start_time.data, 
+                        end_time=form.end_time.data
+                    )
+                    
+        if db_commit():
+            return redirect(url_for('main.challenge', group_id=group, challenge_id=c))
+    
+    
+    
+    return render_template('main/create.html', group=group, form=form, date_range=date_range)

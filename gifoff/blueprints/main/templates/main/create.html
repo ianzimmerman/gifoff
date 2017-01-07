@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}New Challenge{% endblock %}
+{% block head %}
+<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(group=group, new="New Challenge") }}{% endblock %}
+{% block content %}
+    <h1>Create New Challenge</h1>
+    {% for error in form.errors %}
+        {{error}}
+    {% endfor %}
+    <form class="form-group" action="" method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.name.label }}
+        {{ form.name(class="form-control") }}
+        {{ form.description.label }}
+        {{ form.description(class="form-control") }}
+        {{ form.start_time.label }}
+        {{ form.start_time(class="form-control") }}
+        {{ form.end_time.label }}
+        {{ form.end_time(class="form-control") }}
+        <br><button class="btn btn-primary" type="submit">Create</button>
+    </form>
+    
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('input[name="start_time"]').daterangepicker({
+            "singleDatePicker": true,
+            "timePicker": true,
+            "timePicker24Hour": true,
+            "timePickerIncrement": 15,
+            "locale": {
+                "format": "YYYY-MM-DD HH:mm"
+            }       
+        });
+        $('input[name="end_time"]').daterangepicker({
+            "singleDatePicker": true,
+            "timePicker": true,
+            "timePicker24Hour": true,
+            "timePickerIncrement": 15,
+            "locale": {
+                "format": "YYYY-MM-DD HH:mm"
+            }
+        });
+    });
+</script>
+{% endblock %}
