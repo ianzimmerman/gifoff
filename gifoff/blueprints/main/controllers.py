@@ -141,8 +141,6 @@ def new_group():
         if db_commit():
             return redirect(url_for('main.group', group_id=g))
     
-    
-    
     return render_template('main/new_group.html', group=group, form=form)
 
 @main.route('join-group', methods=['GET', 'POST'])
