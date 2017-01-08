@@ -5,20 +5,26 @@
     <div class="">
         <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
         <h2>Your Entries</h2>
-            {% for p in challenge.prompts %}
-                <form class="form-group" action="" method="post" id="form{{p.id}}">
-                    {{ forms[p.id].hidden_tag() }}
-                    <label for="prompt">{{ p.prompt }}</label>
-                    <div class="input-group">
-                      {{ forms[p.id].url(class="form-control", type="url") }}
-                      <span class="input-group-btn">
-                        <button id="button{{p.id}}" class="btn btn-primary" type="submit">Save</button>
-                      </span>
-                    </div>
-                    <div id="feedback{{p.id}}" class="form-control-feedback"></div>
-                    <img src="{{ p.user_entry(current_user).url or '' }}" id="img{{p.id}}">
-                </form>
-            {% endfor %}
+        <dl>
+        {% for p in challenge.prompts %}
+            <dt>
+                {{ p.prompt }}<br>
+                {% if p.user_entry(current_user).score == 0 %}
+                    <form class="form-group" action="" method="post" id="form{{p.id}}">
+                        {{ forms[p.id].hidden_tag() }}
+                        <div class="input-group">
+                          {{ forms[p.id].url(class="form-control", type="url") }}
+                          <span class="input-group-btn">
+                            <button id="button{{p.id}}" class="btn btn-primary" type="submit">Save</button>
+                          </span>
+                        </div>
+                        <div id="feedback{{p.id}}" class="form-control-feedback"></div>
+                    </form>
+                {% endif %}
+            </dt>
+            <dd><img src="{{ p.user_entry(current_user).url or '' }}" id="img{{p.id}}"></dd>
+        {% endfor %}
+        </dl>
     </div>
 {% endblock %}
 {% block scripts %}

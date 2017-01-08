@@ -45,13 +45,43 @@ def challenge(group_id, challenge_id):
     
     return render_template('main/challenge.html', challenge=challenge, form=form)
     
-@main.route('<id_slug:challenge_id>/entry/<int:user_id>')
+@main.route('<id_slug:challenge_id>/entry/<int:user_id>', methods=['GET', 'POST'])
 def entry(challenge_id, user_id):
     challenge = Challenge.query.get_or_404(challenge_id)
     user = User.query.get_or_404(user_id)
     
     return render_template('main/entry.html', challenge=challenge, user=user)
     
+@main.route('challenge/<int:challenge_id>/entry/<int:entry_id>/score/<score>')
+def score(challenge_id, entry_id, score):
+    challenge = Challenge.query.get_or_404(challenge_id)
+    
+    if current_user in [challenge.judge, challenge.author]:
+        entry = Entry.query.get_or_404(entry_id)
+        entry.score = float(score)
+        if db_commit():
+            return jsonify({'response':'OK'}), 200
+        else:
+            return jsonify({'response':'Not Modified'}), 304
+    
+    return jsonify({'response':'Not Authorized'}), 510
+
+@main.route('challenge/<int:challenge_id>/close')
+def close(challenge_id):
+    challenge = Challenge.query.get_or_404(challenge_id)
+    
+    if current_user in [challenge.judge, challenge.author]:
+        max_score, winner = challenge.high_score
+        
+        if winner:
+            challenge.winner = winner
+            if db_commit():
+                flash('Challenge completed', 'success')
+        else:
+            flash('No Winner Identified.', 'danger')
+    
+    return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
+
 @main.route('<id_slug:challenge_id>/enter', methods=['GET', 'POST'])
 def enter(challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
@@ -117,7 +147,7 @@ def new_group():
 
 @main.route('join-group', methods=['GET', 'POST'])
 def join_group():
-    form = GroupForm()
+    form = GroupForm(name=request.args.get('name'), pin=request.args.get('pin'))
     if form.validate_on_submit():
         g = Group.query.filter(Group.name==form.name.data, Group.pin==form.pin.data).first()
         if g:

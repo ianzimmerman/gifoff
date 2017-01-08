@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 {% block title %}{{ challenge.name }}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.2.0/jquery.rateyo.min.css">
+{% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
 {% block content %}
     <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
@@ -12,7 +15,7 @@
         <li>{{ p.prompt }}</li>
         {% endfor %}
     </ul>
-    {% if current_user == challenge.author and challenge.complete == false %}
+    {% if current_user == challenge.author and challenge.active == true %}
         <form action="" method="POST">
             <div class="input-group">
                 {{ form.hidden_tag() }}
@@ -26,19 +29,31 @@
     
     <h2>Judge: {{challenge.judge.username}}</h2>
     
-    {% if challenge.active == true %}
+    {% if challenge.active %}
         <h2>Time Left: {{ challenge.time_left }}</h2>
-        {% if current_user == challenge.judge %}
-            <a class="btn btn-primary" href="#">Judge Entries</a>
-        {% else %}
+        {% if current_user != challenge.judge %}
             <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Enter Now!</a>
         {% endif %}
-    {% elif challenge.winner %}
+    {% endif %}
+    
+    {% if challenge.complete == false and current_user == challenge.judge %}
+<!--         <a class="btn btn-primary" href="#">Judge Entries</a> -->
+        <h2>Judge Entries</h2>
+        <ul>
+            {% for p in challenge.players %}
+            <li>
+                <a class="entryLink" href="#" player_id="{{ p.id }}">Entry {{ loop.index }}</a>
+                     (Score: <span id="score{{p.id}}">{{ challenge.player_score(p) }}</span>)
+            </li>
+            {% endfor %}
+        </ul>
+        <a class="btn btn-primary" href="{{ url_for('main.close', challenge_id=challenge.id) }}">Complete Challenge!</a>
+    {% elif challenge.complete %}
         <h2>Winner</h2>
         <ul>
             <li><a class="entryLink" href="#" player_id="{{ challenge.winner.id }}">{{ challenge.winner.username }}</a></li>
         </ul>
-        <h2>Players</h2>
+        <h2>All Players</h2>
         <ul>
             {% for p in challenge.players if p != challenge.winner %}
             <li><a class="entryLink" href="#" player_id="{{ p.id }}">{{ p.username }}</a></li>
@@ -64,18 +79,44 @@
     </div>
 {% endblock %}
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.2.0/jquery.rateyo.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $( ".entryLink" ).on('click', function( e ) {
           
           var player_id = $(this).attr('player_id');
           
-          console.log(player_id);
-          
           $.get(Flask.url_for('main.entry', {'challenge_id':{{ challenge.id }}, 'user_id': player_id }), function (data){
               $('#entryResults').html(data);
-              $('#entry').modal('toggle')
+              $('#entry').modal('toggle');
+              window.total_score = 0
+              $(".rateYo").rateYo({
+                  rating: 0,
+                  onInit: function (rating, rateYoInstance) {
+                      var p_rating = parseFloat(rateYoInstance.node.attributes.rating.value);
+                      total_score += p_rating;
+                      rateYoInstance.rating(p_rating);
+                  },
+                  onSet: function (rating, rateYoInstance) {
+                      var entry_id = rateYoInstance.node.attributes.entry_id.value;
+                      var p_rating = parseFloat(rateYoInstance.node.attributes.rating.value);
+                                            
+                      if (p_rating != rating){
+                          total_score += rating - p_rating;
+                          $.get(Flask.url_for('main.score', {'challenge_id':{{ challenge.id }}, 'entry_id': entry_id, 'score':rating }), function (data){
+                              //console.log("Rating for " + entry_id + " is set to " + rating);
+                              //console.log(data);
+                          });
+                      }
+                  }
+                  
+              });
           });
+          
+          $('#entry').on('hidden.bs.modal', function (e) {
+              //console.log(player_id);
+              $('#score'+player_id).html(window.total_score.toFixed(2));
+          })
           
         });
     });

@@ -3,13 +3,14 @@
 {% block breadcrumb %}{{ breadcrumbs(group=group) }}{% endblock %}
 {% block content %}
     <div class="">
-        <h1>{{ group.name }} <small>owned by {{ group.owner.username }}</small></h1>
+        <h1>{{ group.name }} <small>owned by {{ group.owner.username }}</small></h1><br>
+        <p class="lead"><a href="{{ url_for('main.join_group', name=group.name, pin=group.pin) }}">Invite Link</a></p>
         <h2>Members</h2>
-        <ul>
+        <code>
             {% for p in group.players %}
-            <li>{{ p.username }}</li>
-            {% endfor %}
-        </ul>
+                {{ p.email }}{{ ', ' if not loop.last }}
+            {% endfor %}  
+        </code>
         <h2>Active Challenges</h2>
         <ul>  
             {% for c in group.challenges if c.active == true %}
@@ -19,14 +20,14 @@
             {% else %}
                 {% if current_user in group.authors %}
                 <li>
-                    <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="">Create New Challenge</a>
+                    <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="btn btn-sm btn-primary">Create New Challenge</a>
                 </li>
                 {% endif %}
             {% endfor %}
         </ul>
-        <h2>Pending Challenges</h2>
+        <h2>Challenges being Judged</h2>
         <ul>
-            {% for c in group.challenges if c.complete == false and c.active == false %}
+            {% for c in group.challenges if c.pending == true %}
                 <li>
                     <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a>
                 </li>
@@ -41,4 +42,5 @@
             {% endfor %}
         </ul>
     </div>
+    <a href="{{ url_for('main.join_group', name=group.name, pin=group.pin) }}">Invite Link</a>
 {% endblock %}

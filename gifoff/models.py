@@ -110,10 +110,19 @@ class Challenge(Base):
     
     @hybrid_property
     def active(self):
-        if self.complete:
+        if self.complete or datetime.now() > self.end_time :
             return False
-            
-        return (datetime.now() < self.end_time and datetime.now() > self.start_time)
+        elif datetime.now() < self.start_time:
+            return False
+        elif datetime.now() < self.end_time:
+            return True
+    
+    @hybrid_property
+    def pending(self):
+        if self.complete is False and datetime.now() > self.end_time:
+            return True
+        else:
+            return False
         
     @hybrid_property
     def judge(self):
@@ -136,10 +145,15 @@ class Challenge(Base):
     @hybrid_property
     def high_score(self):
         max_score = 0
+        winner = None
         for p in self.players:
-            max_score = max(max_score, db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar())
+            p_score = db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar()
+            if p_score:
+                if p_score > max_score:
+                    max_score = p_score
+                    winner = p
         
-        return max_score
+        return (max_score, winner)
     
     @hybrid_method
     def player_score(self, p):
