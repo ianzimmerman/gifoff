@@ -5,7 +5,7 @@ from flask_security import current_user, login_required
 
 from .helpers import IDSlugConverter, add_app_url_map_converter
 from ...models import db_commit, User, Group, Challenge, Entry, Prompt
-from ...forms import GroupForm, ChallengeEntry, ChallengeForm
+from ...forms import GroupForm, ChallengeEntry, ChallengeForm, PromptForm
 
 Blueprint.add_app_url_map_converter = add_app_url_map_converter
 
@@ -31,11 +31,19 @@ def group(group_id):
     
     return render_template('main/group.html', group=group)
     
-@main.route('<id_slug:group_id>/<id_slug:challenge_id>')
+@main.route('<id_slug:group_id>/<id_slug:challenge_id>', methods=['GET', 'POST'])
 def challenge(group_id, challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
     
-    return render_template('main/challenge.html', challenge=challenge)
+    form = PromptForm()
+    if form.validate_on_submit():
+        p = Prompt(challenge=challenge, prompt=form.prompt.data)
+        if db_commit():
+            return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
+        else:
+            print(form.errors)
+    
+    return render_template('main/challenge.html', challenge=challenge, form=form)
     
 @main.route('<id_slug:challenge_id>/entry/<int:user_id>')
 def entry(challenge_id, user_id):
@@ -55,7 +63,7 @@ def enter(challenge_id):
             entry = Entry.query.get(int(f.entry_id.data))
             entry.url = f.url.data
             if db_commit():
-                return jsonify({'response': 'OK', 'prompt_id': f.prompt_id.data}), 200
+                return jsonify({'response': 'OK', 'prompt_id': f.prompt_id.data, 'url': entry.url }), 200
             else:
                 return jsonify({'response': 'ERROR', 'prompt_id': f.prompt_id.data}), 304
         elif f.errors:
@@ -70,7 +78,6 @@ def new_challenge(group_id):
     group = Group.query.get_or_404(group_id)
     
     date_range = {'s': datetime.now(), 'e': datetime.now() + timedelta(hours=4)}
-    print(request.form)
     form = ChallengeForm(start_time=date_range['s'], end_time=date_range['e'])
     if form.validate_on_submit():
         c = Challenge(group=group,
@@ -86,4 +93,41 @@ def new_challenge(group_id):
     
     
     
-    return render_template('main/create.html', group=group, form=form, date_range=date_range)
+    return render_template('main/new_challenge.html', group=group, form=form, date_range=date_range)
+
+@main.route('new-group', methods=['GET', 'POST'])
+def new_group():
+    form = GroupForm()
+    if form.validate_on_submit():
+        g = Group(owner=current_user, 
+                    name=form.name.data, 
+                    description=form.description.data, 
+                    pin=form.pin.data
+                )
+                
+        g.players.append(g.owner)
+        g.authors.append(g.owner)
+                    
+        if db_commit():
+            return redirect(url_for('main.group', group_id=g))
+    
+    
+    
+    return render_template('main/new_group.html', group=group, form=form)
+
+@main.route('join-group', methods=['GET', 'POST'])
+def join_group():
+    form = GroupForm()
+    if form.validate_on_submit():
+        g = Group.query.filter(Group.name==form.name.data, Group.pin==form.pin.data).first()
+        if g:
+            g.players.append(current_user)
+            if db_commit():
+                return jsonify({'response': 'OK', 'url': url_for('main.group', group_id=g)}), 200
+        else:
+            return jsonify({'response': 'ERROR', 'error': 'Group or PIN not found'}), 200
+    
+    elif form.errors:
+        return jsonify({'response': 'ERROR', 'error': 'Empty Fields'}), 200
+            
+    return render_template('main/join_group.html', form=form)

@@ -1,6 +1,5 @@
 {% extends "layout.html" %}
 {% block title %}Groups{% endblock %}
-{% block head %}{% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=group) }}{% endblock %}
 {% block content %}
     <div class="">
@@ -11,21 +10,34 @@
             <li>{{ p.username }}</li>
             {% endfor %}
         </ul>
-        {% if current_user in group.authors %}
-        <p>
-            <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="btn btn-primary">Create New Challenge</a>
-        </p>
-        {% endif %}
         <h2>Active Challenges</h2>
         <ul>  
             {% for c in group.challenges if c.active == true %}
-            <li><a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a></li>
+                <li>
+                    <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a>
+                </li>
+            {% else %}
+                {% if current_user in group.authors %}
+                <li>
+                    <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="">Create New Challenge</a>
+                </li>
+                {% endif %}
             {% endfor %}
         </ul>
-        <h2>Old Challenges</h2>
+        <h2>Pending Challenges</h2>
         <ul>
-            {% for c in group.challenges if c.active == false %}
-            <li><a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a></li>
+            {% for c in group.challenges if c.complete == false and c.active == false %}
+                <li>
+                    <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <h2>Completed Challenges</h2>
+        <ul>
+            {% for c in group.challenges if c.complete == true %}
+                <li>
+                    <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a>
+                </li>
             {% endfor %}
         </ul>
     </div>

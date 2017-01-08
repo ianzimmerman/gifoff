@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}New Group{% endblock %}
+{% block head %}
+{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(new="New Group") }}{% endblock %}
+{% block content %}
+    <h1>Create New Group</h1>
+    {% for error in form.errors %}
+        {{error}}
+    {% endfor %}
+    <form class="form-group" action="" method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.name.label }}
+        {{ form.name(class="form-control") }}
+        {{ form.description.label }}
+        {{ form.description(class="form-control") }}
+        {{ form.pin.label }}
+        {{ form.pin(class="form-control", type='number') }}
+        <br><button class="btn btn-primary" type="submit">Create Group</button>
+    </form>
+    
+{% endblock %}
+{% block scripts %}
+{% endblock %}

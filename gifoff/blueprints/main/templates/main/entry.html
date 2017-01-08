@@ -1,15 +1,34 @@
-{% extends "layout.html" %}
-{% block title %}{{ user.username }}'s Entries to {{ challenge.name }}{% endblock %}
-{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge, user=user.username) }}{% endblock %}
-{% block content %}
-    <div class="">
-        <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
-        <h2>{{user.username}}'s Entries</h2>
-        <dl>
-            {% for p in challenge.prompts %}
-            <dt>{{ p.prompt }} | Score: {{ p.user_entry(user).score }}</dt>
-            <dd><img src="{{ p.user_entry(user).url }}"></dd>
-            {% endfor %}
-        </dl>
+<div class="row">
+    <div class="col-xs-12 text-xs-left" style="padding: 0">
+        <p class="lead">
+            {% if challenge.winner == user %}
+            <i class="fa fa-trophy"></i> 
+            {% endif %} 
+            {{user.username}}'s entries
+        </p>
     </div>
-{% endblock %}
+</div>
+<div class="row">
+    <div class="col-xs-6 text-xs-left" style="padding: 0">
+        <small>
+            User Score: {{ challenge.player_score(user) }}         
+        </small>
+    </div>
+    <div class="col-xs-6 text-xs-right" style="padding: 0"><small>Contest Best: {{ challenge.high_score }}</small></div>
+</div>
+{% for p in challenge.prompts %}
+<hr>
+<div class="row">
+    <dl>
+        <dt>
+            {% if p.user_entry(user).score == p.high_score %}
+            <i class="fa fa-star"></i>
+            {% endif %}
+             {{ p.prompt }}<br>
+            <div class="float-xs-left"><small>Score: {{ p.user_entry(user).score }}</small></div>
+            <div class="float-xs-right"><small>Best: {{ p.high_score }}</small></div>
+        </dt>
+        <dd><img src="{{ p.user_entry(user).url or '' }}" class="rounded" style="max-width: 100%"></dd>
+    </dl>
+</div>
+{% endfor %}

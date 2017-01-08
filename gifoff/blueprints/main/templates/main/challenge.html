@@ -11,22 +11,73 @@
         {% for p in challenge.prompts %}
         <li>{{ p.prompt }}</li>
         {% endfor %}
-        <li></li>
     </ul>
-    <h2>Judge: {{challenge.judge.username}}</h2>
-    {% if challenge.active == true %}
-    <h2>Ends in: {{ challenge.time_left }}</h2>
-    <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Enter Now!</a>
-    {% else %}
-    <h2>Winner</h2>
-    <ul>
-        <li><a href="{{url_for('main.entry', challenge_id=challenge, user_id=challenge.winner_id) }}">{{ challenge.winner.username }}</a></li>
-    </ul>
-    <h2>Players</h2>
-    <ul>
-        {% for p in challenge.players if p != challenge.winner %}
-        <li><a href="{{url_for('main.entry', challenge_id=challenge, user_id=p.id) }}">{{ p.username }}</a></li>
-        {% endfor %}
-    </ul>
+    {% if current_user == challenge.author and challenge.complete == false %}
+        <form action="" method="POST">
+            <div class="input-group">
+                {{ form.hidden_tag() }}
+                {{ form.prompt(class="form-control", placeholder="New Prompt") }}
+                <span class="input-group-btn">
+                  <button id="create" class="btn btn-primary" type="submit">Create</button>
+                </span>
+            </div>
+        </form>
     {% endif %}
+    
+    <h2>Judge: {{challenge.judge.username}}</h2>
+    
+    {% if challenge.active == true %}
+        <h2>Time Left: {{ challenge.time_left }}</h2>
+        {% if current_user == challenge.judge %}
+            <a class="btn btn-primary" href="#">Judge Entries</a>
+        {% else %}
+            <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Enter Now!</a>
+        {% endif %}
+    {% elif challenge.winner %}
+        <h2>Winner</h2>
+        <ul>
+            <li><a class="entryLink" href="#" player_id="{{ challenge.winner.id }}">{{ challenge.winner.username }}</a></li>
+        </ul>
+        <h2>Players</h2>
+        <ul>
+            {% for p in challenge.players if p != challenge.winner %}
+            <li><a class="entryLink" href="#" player_id="{{ p.id }}">{{ p.username }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div id="entry" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="pivotTitle" aria-hidden="true">
+    	<div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h5 class="modal-title" id="entryTitle">{{ challenge.name }}</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="" id="entryResults"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $( ".entryLink" ).on('click', function( e ) {
+          
+          var player_id = $(this).attr('player_id');
+          
+          console.log(player_id);
+          
+          $.get(Flask.url_for('main.entry', {'challenge_id':{{ challenge.id }}, 'user_id': player_id }), function (data){
+              $('#entryResults').html(data);
+              $('#entry').modal('toggle')
+          });
+          
+        });
+    });
+</script>
 {% endblock %}

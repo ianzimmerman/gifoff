@@ -16,6 +16,7 @@
                       </span>
                     </div>
                     <div id="feedback{{p.id}}" class="form-control-feedback"></div>
+                    <img src="{{ p.user_entry(current_user).url or '' }}" id="img{{p.id}}">
                 </form>
             {% endfor %}
     </div>
@@ -30,7 +31,6 @@
           var form = $(this);
           
           var form_data = form.serialize();
-          console.log(form_data);
           
           $.post("{{ url_for('main.enter', challenge_id=challenge) }}", form_data, function (data){
                 console.log(data)
@@ -42,6 +42,7 @@
                     $("input[name=url]", form).attr('class', 'form-control form-control-success');
                     button.attr('class', 'btn btn-success');
                     button.text('Saved');
+                    $("#img"+data.prompt_id).attr('src', data.url);
                 }
                 else{
                     form.removeClass("has-success");

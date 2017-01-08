@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}Join Group{% endblock %}
+{% block head %}
+{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(new="Find Group") }}{% endblock %}
+{% block content %}
+    <h1>Join a Group</h1>
+    {% for error in form.errors %}
+        {{error}}
+    {% endfor %}
+    <form class="form-group" action="" method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.name.label }}
+        {{ form.name(class="form-control") }}
+        <label for="pin">Access Code</label>
+        {{ form.pin(class="form-control", type='number') }}
+        <div id="feedback" class="form-control-feedback"></div>
+        <br><button id="submit" class="btn btn-primary" type="submit">Join Group</button>
+    </form>
+    
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $( ".form-group" ).submit(function( event ) {
+          
+          event.preventDefault();
+          
+          var form = $(this);
+          
+          var form_data = form.serialize();
+          
+          $.post("{{ url_for('main.join_group') }}", form_data, function (data){
+                console.log(data)
+                var button = $("#submit");
+                
+                if (data.response == 'OK'){
+                    window.location.assign(data.url)
+                }
+                else{
+                    form.addClass("has-danger");
+                    $("#feedback").text(data.error);
+                    button.attr('class', 'btn btn-danger');
+                }
+          },'json');
+          
+        });
+    });
+</script>
+{% endblock %}

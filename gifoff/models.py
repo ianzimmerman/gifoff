@@ -77,8 +77,8 @@ class Group(Base):
     description = db.Column(db.String(250), nullable=True, unique=False)
     pin  = db.Column(db.Integer(), nullable=False, unique=False)
     
-    players = db.relationship('User', secondary='group_players', backref=db.backref('players', lazy='dynamic'))
-    authors = db.relationship('User', secondary='group_authors', backref=db.backref('authors', lazy='dynamic'))
+    players = db.relationship('User', secondary='group_players')
+    authors = db.relationship('User', secondary='group_authors')
     
     def __repr__(self):
         return '{}'.format(self.name)
@@ -102,19 +102,27 @@ class Challenge(Base):
     winner = db.relationship('User', foreign_keys=[winner_id], backref=db.backref('victories', lazy='dynamic', cascade='all, delete'))
     
     @hybrid_property
+    def complete(self):
+        if self.winner_id:
+            return True
+        else:
+            return False
+    
+    @hybrid_property
     def active(self):
-        if self.winner:
+        if self.complete:
             return False
             
-        return datetime.now() < self.end_time
+        return (datetime.now() < self.end_time and datetime.now() > self.start_time)
         
     @hybrid_property
     def judge(self):
         last_challenge = db.session.query(Challenge).filter(Challenge.group==self.group, Challenge.id<self.id).order_by(Challenge.id.desc()).first()
         if last_challenge:
-            return last_challenge.winner
-        else:
-            return self.author
+            if last_challenge.winner:
+                return last_challenge.winner
+ 
+        return self.author
     
     @hybrid_property
     def time_left(self):
@@ -129,9 +137,13 @@ class Challenge(Base):
     def high_score(self):
         max_score = 0
         for p in self.players:
-            max_score = max(max_score, db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p))
+            max_score = max(max_score, db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar())
         
         return max_score
+    
+    @hybrid_method
+    def player_score(self, p):
+        return db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar()
     
     def __repr__(self):
         return '{}'.format(self.name)
@@ -146,7 +158,7 @@ class Prompt(Base):
     
     @hybrid_property
     def high_score(self):
-        return db.session.query(Entry).with_entities(Entry.score).filter(Entry.prompt_id==self.id).order_by(Entry.score.desc()).first()
+        return db.session.query(Entry).with_entities(Entry.score).filter(Entry.prompt_id==self.id).order_by(Entry.score.desc()).first()[0]
         
     @hybrid_method
     def user_entry(self, user):
