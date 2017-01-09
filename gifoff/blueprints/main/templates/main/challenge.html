@@ -5,17 +5,24 @@
 {% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
 {% block content %}
-    <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
+    <h1>{{ challenge.name }} <small>by {{ challenge.author.username }}</small></h1>
     <p class="lead">
         {{ challenge.description }}
     </p>
+    {% if challenge.upcoming %}
+        <p class="text-success">Starts in: {{challenge.starts_in}}</p>
+    {% elif challenge.active %}
+        <p class="text-warning">Time Left: {{ challenge.time_left }}</p>
+    {% endif %}
+    <p class="">Judge: {{challenge.judge.username}}</p>
     <h2>Prompts</h2>
     <ul>
         {% for p in challenge.prompts %}
         <li>{{ p.prompt }}</li>
         {% endfor %}
     </ul>
-    {% if current_user == challenge.author and challenge.active == true %}
+    {% if current_user == challenge.author and challenge.complete == false  %}
+    <p>
         <form action="" method="POST">
             <div class="input-group">
                 {{ form.hidden_tag() }}
@@ -25,18 +32,18 @@
                 </span>
             </div>
         </form>
+    </p>
     {% endif %}
     
-    <h2>Judge: {{challenge.judge.username}}</h2>
-    
     {% if challenge.active %}
-        <h2>Time Left: {{ challenge.time_left }}</h2>
         {% if current_user != challenge.judge %}
-            <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Enter Now!</a>
+            <p>
+                <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Enter Now!</a>
+            </p>
         {% endif %}
     {% endif %}
     
-    {% if challenge.complete == false and current_user == challenge.judge %}
+    {% if challenge.complete == false and current_user == challenge.judge and challenge.entry_count > 0 %}
 <!--         <a class="btn btn-primary" href="#">Judge Entries</a> -->
         <h2>Judge Entries</h2>
         <ul>
@@ -59,6 +66,12 @@
             <li><a class="entryLink" href="#" player_id="{{ p.id }}">{{ p.username }}</a></li>
             {% endfor %}
         </ul>
+    {% endif %}
+    {% if current_user in [challenge.group.owner, challenge.author] %}
+        <br><br>
+        <a href="{{ url_for('main.delete_challenge', challenge_id=challenge.id) }}" class="btn btn-danger btn-sm float-md-right">
+            <i class="fa fa-trash"></i> Delete Challenge
+        </a>
     {% endif %}
     <div id="entry" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="pivotTitle" aria-hidden="true">
     	<div class="modal-dialog modal-sm" role="document">

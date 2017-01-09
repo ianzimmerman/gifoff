@@ -2,12 +2,16 @@
 {% block title %}New Challenge{% endblock %}
 {% block head %}
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+<!--
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.6/select2-bootstrap.css" />
+-->
 {% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=group, new="New Challenge") }}{% endblock %}
 {% block content %}
     <h1>Create New Challenge</h1>
     {% for error in form.errors %}
-        {{error}}
+        {{error}}<br>
     {% endfor %}
     <form class="form-group" action="" method="POST">
         {{ form.hidden_tag() }}
@@ -15,6 +19,8 @@
         {{ form.name(class="form-control") }}
         {{ form.description.label }}
         {{ form.description(class="form-control") }}
+        {{ form.judge_id.label }}
+        {{ form.judge_id(class="form-control") }}
         {{ form.start_time.label }}
         {{ form.start_time(class="form-control") }}
         {{ form.end_time.label }}
@@ -26,8 +32,10 @@
 {% block scripts %}
 <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script> -->
 <script type="text/javascript">
     $(document).ready(function() {
+//         $("#judge").select2();
         $('input[name="start_time"]').daterangepicker({
             "singleDatePicker": true,
             "timePicker": true,

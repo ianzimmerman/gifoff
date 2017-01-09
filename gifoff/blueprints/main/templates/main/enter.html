@@ -9,7 +9,7 @@
         {% for p in challenge.prompts %}
             <dt>
                 {{ p.prompt }}<br>
-                {% if p.user_entry(current_user).score == 0 %}
+                {% if not p.user_entry(current_user).score %}
                     <form class="form-group" action="" method="post" id="form{{p.id}}">
                         {{ forms[p.id].hidden_tag() }}
                         <div class="input-group">

@@ -4,7 +4,7 @@ from flask import Blueprint, url_for, render_template, request, redirect, abort,
 from flask_security import current_user, login_required
 
 from .helpers import IDSlugConverter, add_app_url_map_converter
-from ...models import db_commit, User, Group, Challenge, Entry, Prompt
+from ...models import db, db_commit, User, Group, Challenge, Entry, Prompt
 from ...forms import GroupForm, ChallengeEntry, ChallengeForm, PromptForm
 
 Blueprint.add_app_url_map_converter = add_app_url_map_converter
@@ -23,13 +23,27 @@ main.add_app_url_map_converter(IDSlugConverter, 'id_slug')
 
 @main.route('')
 def index():
-    return render_template('main/index.html')
+    
+    challenges = Challenge.query.filter(Challenge.group_id.in_([g.id for g in current_user.player_of])).order_by(Challenge.end_time.desc())
+    
+    c = dict()
+    c['judging'] = challenges.filter(Challenge.judge==current_user, Challenge.winner_id==None)
+    c['active'] = challenges.filter(Challenge.judge!=current_user, Challenge.winner_id==None)
+    c['recent'] = challenges.filter(Challenge.winner_id!=None).limit(10)
+    
+    return render_template('main/index.html', challenges=c)
     
 @main.route('<id_slug:group_id>')
 def group(group_id):
     group = Group.query.get_or_404(group_id)
     
-    return render_template('main/group.html', group=group)
+    challenges = Challenge.query.filter(Challenge.group_id==group.id).order_by(Challenge.end_time.desc())
+    
+    c = dict()
+    c['active'] = challenges.filter(Challenge.winner_id==None)
+    c['recent'] = challenges.filter(Challenge.winner_id!=None).limit(10)
+    
+    return render_template('main/group.html', group=group, challenges=c)
     
 @main.route('<id_slug:group_id>/<id_slug:challenge_id>', methods=['GET', 'POST'])
 def challenge(group_id, challenge_id):
@@ -81,6 +95,23 @@ def close(challenge_id):
             flash('No Winner Identified.', 'danger')
     
     return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
+    
+@main.route('challenge/<int:challenge_id>/delete')
+def delete_challenge(challenge_id):
+    challenge = Challenge.query.get_or_404(challenge_id)
+    
+    if current_user in [challenge.group.owner, challenge.author]:
+        group = challenge.group
+        db.session.delete(challenge)
+        if db_commit():
+            flash('Challenge Deleted', 'success')
+            return redirect(url_for('main.group', group_id=group))
+        else:
+            flash('Delete Failed', 'danger')
+    else:
+        flash('No Access.', 'danger')
+    
+    return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
 
 @main.route('<id_slug:challenge_id>/enter', methods=['GET', 'POST'])
 def enter(challenge_id):
@@ -107,21 +138,28 @@ def enter(challenge_id):
 def new_challenge(group_id):
     group = Group.query.get_or_404(group_id)
     
+    if group.last_winner:
+        judge_id = group.last_winner.id
+    else:
+        judge_id = current_user.id
+    
     date_range = {'s': datetime.now(), 'e': datetime.now() + timedelta(hours=4)}
-    form = ChallengeForm(start_time=date_range['s'], end_time=date_range['e'])
+    form = ChallengeForm(start_time=date_range['s'], end_time=date_range['e'], judge_id=judge_id)
+    form.judge_id.choices = [(p.id, p.username) for p in group.players]
     if form.validate_on_submit():
         c = Challenge(group=group,
                         author=current_user, 
                         name=form.name.data, 
                         description=form.description.data, 
+                        judge_id=int(form.judge_id.data), 
                         start_time=form.start_time.data, 
                         end_time=form.end_time.data
                     )
-                    
+        
         if db_commit():
             return redirect(url_for('main.challenge', group_id=group, challenge_id=c))
     
-    
+    print(form.errors)
     
     return render_template('main/new_challenge.html', group=group, form=form, date_range=date_range)
 

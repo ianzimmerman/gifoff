@@ -1,8 +1,17 @@
 {% extends "layout.html" %}
+{% from "macros.html" import challenge_list %}
 {% block title %}Index{% endblock %}
 {% block content %}
     <div class="">
         <h1>Home</h1>
-        <p class="lead">{{ request.endpoint }}</p>
+        <p class="lead">Your Stuff</p>
+    </div>
+    <div class="">
+        <h2>Challenges you are Judging</h2>
+        {{ challenge_list(challenges.judging, group=true) }}
+        <h2>Active Challenges</h2>
+        {{ challenge_list(challenges.active, group=true) }}
+        <h2>Recently Ended</h2>
+        {{ challenge_list(challenges.recent, group=true) }}
     </div>
 {% endblock %}

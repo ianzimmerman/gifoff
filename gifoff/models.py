@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+from random import randint
 from flask_security import UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
@@ -80,6 +80,26 @@ class Group(Base):
     players = db.relationship('User', secondary='group_players')
     authors = db.relationship('User', secondary='group_authors')
     
+    @hybrid_property
+    def active_count(self):
+        return len([c.id for c in self.challenges if c.active == True])
+    
+    @hybrid_property
+    def pending_count(self):
+        return len([c.id for c in self.challenges if c.pending == True])
+    
+    @hybrid_property
+    def incomplete_count(self):
+        return len([c.id for c in self.challenges if c.complete == False])
+    
+    @hybrid_property
+    def last_winner(self):
+        last_challenge = db.session.query(Challenge).filter(Challenge.group_id==self.id, Challenge.winner_id!=None).order_by(Challenge.id.desc()).first()
+        if last_challenge:
+            return last_challenge.winner
+        else:
+            return None
+    
     def __repr__(self):
         return '{}'.format(self.name)
     
@@ -96,10 +116,17 @@ class Challenge(Base):
     end_time = db.Column(db.DateTime(), default=datetime.now() + timedelta(hours=4))
     
     author_id = db.Column(db.Integer(), db.ForeignKey(User.id))
-    author = db.relationship('User', foreign_keys=[author_id], backref=db.backref('challenges', lazy='dynamic', cascade='all, delete'))
+    author = db.relationship('User', foreign_keys=[author_id], backref=db.backref('authored', lazy='dynamic', cascade='all, delete'))
+    
+    judge_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    judge = db.relationship('User', foreign_keys=[judge_id], backref=db.backref('judged', lazy='dynamic', cascade='all, delete'))
     
     winner_id = db.Column(db.Integer(), db.ForeignKey(User.id))
-    winner = db.relationship('User', foreign_keys=[winner_id], backref=db.backref('victories', lazy='dynamic', cascade='all, delete'))
+    winner = db.relationship('User', foreign_keys=[winner_id], backref=db.backref('won', lazy='dynamic', cascade='all, delete'))
+    
+    @hybrid_property
+    def entry_count(self):
+        return get_count(Entry.query.filter(Entry.challenge_id==self.id))
     
     @hybrid_property
     def complete(self):
@@ -123,20 +150,29 @@ class Challenge(Base):
             return True
         else:
             return False
-        
+    
     @hybrid_property
-    def judge(self):
-        last_challenge = db.session.query(Challenge).filter(Challenge.group==self.group, Challenge.id<self.id).order_by(Challenge.id.desc()).first()
-        if last_challenge:
-            if last_challenge.winner:
-                return last_challenge.winner
- 
-        return self.author
+    def upcoming(self):
+        if self.complete is False and datetime.now() < self.start_time:
+            return True
+        else:
+            return False
     
     @hybrid_property
     def time_left(self):
-        left = str(self.end_time - datetime.now())
-        return left.split('.')[0]
+        if self.active or self.upcoming:
+            left = str(self.end_time - datetime.now())
+            return left.split('.')[0]
+        else:
+            return None
+    
+    @hybrid_property
+    def starts_in(self):
+        if self.upcoming:
+            starts = str(self.start_time - datetime.now())
+            return starts.split('.')[0]
+        else:
+            return None
     
     @hybrid_property
     def players(self):
@@ -152,6 +188,9 @@ class Challenge(Base):
                 if p_score > max_score:
                     max_score = p_score
                     winner = p
+                elif p_score == max_score:
+                    coin = randint(0,1)
+                    winner = [winner, p][coin]
         
         return (max_score, winner)
     

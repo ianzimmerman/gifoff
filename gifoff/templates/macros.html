@@ -23,3 +23,29 @@
   </ol>
 </nav>
 {% endmacro %}
+
+{% macro challenge_list(challenges, group=none) %}
+<ul>
+{% for c in challenges %}
+    <li> 
+        {% if group %}
+        <span class="tag tag-default">{{c.group}}</span>
+        {% endif %}
+        <span class="tag 
+        {% if c.upcoming %}
+             tag-success">Starts in {{c.starts_in}}
+        {% elif c.active %}
+             tag-warning">Ends in {{c.time_left}}
+        {% elif c.pending %}
+             tag-danger">Ended: Pending Judgement
+        {% elif c.complete %}
+             tag-info">Winner: {{c.winner.username}}
+        {% else %}
+            ">
+        {% endif %}
+        </span>
+        <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a>
+    </li>
+{% endfor %}
+</ul>
+{% endmacro %}
