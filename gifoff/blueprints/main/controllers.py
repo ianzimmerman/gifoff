@@ -100,6 +100,7 @@ def close(challenge_id):
                 try:
                     msg = Message("{}: Challenge '{}' completed! Come see the winner".format(current_app.config['APP_NAME'], challenge.name),
                                     sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),
+                                    cc=[current_user.email],
                                     bcc=[p.email for p in challenge.players])
                     
                     msg.body = "{} by {} has completed.\n".format(challenge.name, challenge.author.username)
