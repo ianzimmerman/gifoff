@@ -8,7 +8,7 @@
     {% for error in form.errors %}
         {{error}}
     {% endfor %}
-    <form class="form-group" action="" method="POST">
+    <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
         {{ form.hidden_tag() }}
         {{ form.name.label }}
         {{ form.name(class="form-control") }}

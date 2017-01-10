@@ -6,7 +6,7 @@ from wtforms import HiddenField, StringField, IntegerField, BooleanField, \
     SelectField, SelectMultipleField, TextAreaField, SubmitField, DateTimeField, validators
 
 
-from .models import db, User
+from .models import db, get_count, User, Group, Challenge
 
 
 def validate_url(self, field):
@@ -21,20 +21,24 @@ def validate_url(self, field):
     if 'gif' not in r.headers['content-type']:
         raise validators.ValidationError('URL is not a gif.')
 
+def unique_name(model):
+    message = 'Name must be unique.'
 
+    def _name_count(form, field):
+        count = get_count(model.query.filter(model.name==field.data))
+        if count > 0:
+            raise validators.ValidationError(message)
 
-# class EmailForm(Form):
-#     audit_id = HiddenField('Audit ID', [validators.DataRequired('No Audit ID Detected')])
-#     email = StringField('New User', [validators.InputRequired('Email Required'), validate_email])
-#     button = SubmitField('Add Access')
+    return _name_count
+
 
 class GroupForm(Form):
-    name = StringField('Name', [validators.DataRequired('Name Required')])
+    name = StringField('Name', [validators.DataRequired('Name Required'), unique_name(Group)])
     description = TextAreaField('Description', [validators.Optional()])
     pin = IntegerField('Access PIN, A # to allow people to join your group.', [validators.DataRequired('PIN Required')])
 
 class PromptForm(Form):
-    prompt = StringField('Prompt', [validators.DataRequired('Prompt Required')])
+    prompt = StringField('Add Prompt', [validators.DataRequired('Prompt Required')])
 
 class ChallengeForm(Form):
     name = StringField('Name', [validators.DataRequired('Name Required')])

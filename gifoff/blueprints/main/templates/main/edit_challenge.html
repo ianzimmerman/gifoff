@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% from "macros.html" import render_field %}
 {% block title %}Edit Challenge{% endblock %}
 {% block head %}
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
@@ -10,21 +11,13 @@
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge, new="Edit") }}{% endblock %}
 {% block content %}
     <h1>Edit {{ challenge.name }}</h1>
-    {% for error in form.errors %}
-        {{error}}<br>
-    {% endfor %}
-    <form class="form-group" action="" method="POST">
+    <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
         {{ form.hidden_tag() }}
-        {{ form.name.label }}
-        {{ form.name(class="form-control") }}
-        {{ form.description.label }}
-        {{ form.description(class="form-control") }}
-        {{ form.judge_id.label }}
-        {{ form.judge_id(class="form-control") }}
-        {{ form.start_time.label }}
-        {{ form.start_time(class="form-control") }}
-        {{ form.end_time.label }}
-        {{ form.end_time(class="form-control") }}
+        {{ render_field(form.name) }}
+        {{ render_field(form.description) }}
+        {{ render_field(form.judge_id) }}
+        {{ render_field(form.start_time) }}
+        {{ render_field(form.end_time) }}
         <br><button class="btn btn-primary" type="submit">Edit</button>
     </form>
     

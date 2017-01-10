@@ -49,3 +49,17 @@
 {% endfor %}
 </ul>
 {% endmacro %}
+
+{% macro render_field(field, help=none, label=true) %}
+    {% set state = 'form-control-danger' if field.errors else '' %}
+    {% if label %}{{ field.label(class="form-control-label") }}{% endif %}
+    {{ field(class="form-control " + state, **kwargs) }}
+    <div class="form-control-feedback">
+        {% for error in field.errors %}
+            {{ error }}{% if not loop.last %}<br />{% endif %}
+        {% endfor %}
+    </div>
+    {% if help %}
+    <small class="form-text text-muted">{{ help }}</small>
+    {% endif %}
+{% endmacro %}

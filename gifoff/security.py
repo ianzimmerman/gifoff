@@ -8,8 +8,12 @@ from .models import db, db_commit, User, Role
 
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 
-ext_reg = ('Username', [DataRequired(), Regexp(r'^[\w.@+-]+$')])
+def unique_name(self, field):
+    u = count(User.query.filter(User.username==field.data))
+    if u:
+        raise validators.ValidationError('Name Taken.')
 
+ext_reg = ('Username', [DataRequired('Username Required.'), unique_name, Regexp(r'^[\w.@+-]+$', message="No special characters.")])
 
 class ExtendedRegisterForm(RegisterForm):
     username = StringField(*ext_reg)
