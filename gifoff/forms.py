@@ -25,7 +25,7 @@ def unique_name(model):
     message = 'Name must be unique.'
 
     def _name_count(form, field):
-        count = get_count(model.query.filter(model.name==field.data))
+        count = get_count(model, name=field.data)
         if count > 0:
             raise validators.ValidationError(message)
 

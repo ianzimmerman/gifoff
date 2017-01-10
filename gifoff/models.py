@@ -18,9 +18,12 @@ def db_commit():
         db.session.flush()
         return False
 
-def get_count(q):
-    return q.with_entities(func.count()).scalar()
-
+def get_count(model, **filters):
+    #return q.with_entities(func.count()).scalar()
+    #return q.with_entities([func.count()]).order_by(None).scalar()
+    return db.session.query(func.count(model.id)).with_entities(model.id).filter_by(**filters).scalar() or 0
+    
+    
 class Base(db.Model):
     __abstract__ = True
 
@@ -126,7 +129,7 @@ class Challenge(Base):
     
     @hybrid_property
     def entry_count(self):
-        return get_count(Entry.query.filter(Entry.challenge_id==self.id))
+        return get_count(Entry, challenge_id=self.id)
     
     @hybrid_property
     def complete(self):
