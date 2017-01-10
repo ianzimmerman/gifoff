@@ -4,12 +4,12 @@ from sqlalchemy import func
 from wtforms import StringField
 from wtforms.validators import DataRequired, Regexp
 
-from .models import db, db_commit, User, Role
+from .models import db, db_commit, get_count, User, Role
 
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 
 def unique_name(self, field):
-    u = count(User.query.filter(User.username==field.data))
+    u = get_count(User, username=field.data)
     if u:
         raise validators.ValidationError('Name Taken.')
 
