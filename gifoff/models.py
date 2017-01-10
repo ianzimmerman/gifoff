@@ -112,8 +112,8 @@ class Challenge(Base):
     name = db.Column(db.String(250), nullable=False, unique=False)
     description = db.Column(db.String(250), nullable=True, unique=False)
     
-    start_time = db.Column(db.DateTime(), default=datetime.now())
-    end_time = db.Column(db.DateTime(), default=datetime.now() + timedelta(hours=4))
+    start_time = db.Column(db.DateTime(), default=datetime.now() + timedelta(minutes=10))
+    end_time = db.Column(db.DateTime(), default=datetime.now() + timedelta(hours=4, minutes=10))
     
     author_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     author = db.relationship('User', foreign_keys=[author_id], backref=db.backref('authored', lazy='dynamic', cascade='all, delete'))
@@ -161,16 +161,16 @@ class Challenge(Base):
     @hybrid_property
     def time_left(self):
         if self.active or self.upcoming:
-            left = str(self.end_time - datetime.now())
-            return left.split('.')[0]
+            left = (self.end_time - datetime.now()).total_seconds()
+            return "{}h {}m".format(int(left//3600), int(left%3600//60))
         else:
             return None
     
     @hybrid_property
     def starts_in(self):
         if self.upcoming:
-            starts = str(self.start_time - datetime.now())
-            return starts.split('.')[0]
+            left = (self.start_time - datetime.now()).total_seconds()
+            return "{}h {}m".format(int(left//3600), int(left%3600//60))
         else:
             return None
     

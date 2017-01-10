@@ -40,8 +40,8 @@ def create_app():
     from ..cache import cache
     cache.init_app(app)
 
-    from flask_mail import Mail
-    mail = Mail(app)  # Initialize Flask-Mail
+    from ..mail import mail
+    mail.init_app(app)  # Initialize Flask-Mail
 
     from flask_jsglue import JSGlue
     jsglue = JSGlue(app)

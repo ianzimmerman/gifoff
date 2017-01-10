@@ -2,6 +2,14 @@
 {% block title %}{{ challenge.name }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.2.0/jquery.rateyo.min.css">
+<style type="text/css">
+    .tag{
+        cursor: pointer
+    }
+    .bg-white {
+        background-color: #ffffff !important;
+    }
+</style>
 {% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
 {% block content %}
@@ -18,7 +26,7 @@
     <h2>Prompts</h2>
     <ul>
         {% for p in challenge.prompts %}
-        <li>{{ p.prompt }}</li>
+        <li id="prompt{{p.id}}">{{ p.prompt }} <span class="smallD text-danger" data-delete="prompt" data-id="{{p.id}}"></span></li>
         {% endfor %}
     </ul>
     {% if current_user == challenge.author and challenge.complete == false  %}
@@ -69,11 +77,18 @@
     {% endif %}
     {% if current_user in [challenge.group.owner, challenge.author] %}
         <br><br>
-        <a href="{{ url_for('main.delete_challenge', challenge_id=challenge.id) }}" class="btn btn-danger btn-sm float-md-right">
-            <i class="fa fa-trash"></i> Delete Challenge
-        </a>
+        <div class="float-md-right">
+            {% if challenge.complete != true %}
+            <a href="{{ url_for('main.edit_challenge', challenge_id=challenge) }}" class="btn btn-warning btn-sm">
+                <i class="fa fa-pencil"></i> Edit Challenge
+            </a>
+            {% endif %}
+            <a href="{{ url_for('main.delete_challenge', challenge_id=challenge.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Really?')">
+                <i class="fa fa-trash"></i> Delete Challenge
+            </a>
+        </div>
     {% endif %}
-    <div id="entry" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="pivotTitle" aria-hidden="true">
+    <div id="entry" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="entryTitle" aria-hidden="true">
     	<div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -95,6 +110,38 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.2.0/jquery.rateyo.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
+        
+        {% if current_user in [challenge.author, challenge.group.owner] and (challenge.active or challenge.upcoming) %}
+            $.each($(".smallD"), function (i, e) {
+               var el = $(e);
+               el.html('<i class="fa fa-trash deleteD"></i>'); 
+            });
+            
+            $(document).on("click", ".deleteD",function() {
+                $(this).parent().html('<span class="cancelD tag tag-success text-white"><i class="fa fa-times "></i> Cancel</span> <span class="confirmD tag tag-danger text-white"><i class="fa fa-trash confirmD"></i> Delete</span>');
+            });
+            
+            $(document).on("click", ".cancelD",function() {
+              $(this).parent().html('<i class="fa fa-trash deleteD"></i>');
+            });
+            
+            $(document).on("click", ".confirmD",function() {
+                p = $(this).parent();
+                elId = p[0].attributes['data-delete'].value;
+                dataId = parseInt(p[0].attributes['data-id'].value);
+                console.log(elId, dataId);
+                
+                $.get(Flask.url_for('main.delete', {'model': elId, 'model_id': dataId}), function (data){
+                    if (data.response == 'OK'){
+                        $('#'+elId+dataId).toggle();
+                    }
+                    else{
+                        console.log(data)
+                    }
+                });
+            });
+        {% endif %}
+        
         $( ".entryLink" ).on('click', function( e ) {
           
           var player_id = $(this).attr('player_id');

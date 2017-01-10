@@ -35,7 +35,7 @@
         {% if c.upcoming %}
              tag-success">Starts in {{c.starts_in}}
         {% elif c.active %}
-             tag-warning">Ends in {{c.time_left}}
+             tag-warning">{{c.time_left}} Remaining
         {% elif c.pending %}
              tag-danger">Ended: Pending Judgement
         {% elif c.complete %}
