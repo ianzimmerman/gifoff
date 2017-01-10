@@ -245,7 +245,7 @@ def new_group():
 @login_required
 def join_group():
     form = GroupForm(name=request.args.get('name'), pin=request.args.get('pin'))
-    if form.validate_on_submit():
+    if request.method == 'POST':
         g = Group.query.filter(Group.name==form.name.data, Group.pin==form.pin.data).first()
         if g:
             g.players.append(current_user)
@@ -253,9 +253,6 @@ def join_group():
                 return jsonify({'response': 'OK', 'url': url_for('main.group', group_id=g)}), 200
         else:
             return jsonify({'response': 'ERROR', 'error': 'Group or PIN not found'}), 200
-    
-    elif form.errors:
-        return jsonify({'response': 'ERROR', 'error': 'Empty Fields'}), 200
             
     return render_template('main/join_group.html', form=form)
 
