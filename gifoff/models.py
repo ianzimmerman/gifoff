@@ -21,7 +21,7 @@ def db_commit():
 def get_count(model, **filters):
     #return q.with_entities(func.count()).scalar()
     #return q.with_entities([func.count()]).order_by(None).scalar()
-    return db.session.query(func.count(model.id)).with_entities(model.id).filter_by(**filters).scalar() or 0
+    return db.session.query(func.count(model.id)).filter_by(**filters).scalar() or 0
     
     
 class Base(db.Model):
