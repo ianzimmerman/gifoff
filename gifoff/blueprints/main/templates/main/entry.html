@@ -18,9 +18,9 @@
         </div>
         <div class="col-xs-6 text-xs-left" style="padding: 0"><small>Contest Best: {{ challenge.high_score[0] }}</small></div>
     </div>
-    <hr>
     {% endif %}
     {% for p in challenge.prompts %}
+    <hr>
     <div class="row">
         <dl>
             <dt>
@@ -35,6 +35,5 @@
             <dd><img src="{{ p.user_entry(user).url or '' }}" class="rounded" style="max-width: 100%"></dd>
         </dl>
     </div>
-    <hr>
     {% endfor %}
 {% endif %}
