@@ -14,7 +14,7 @@
 {% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
 {% block content %}
-    <h1>{{ challenge.name }} <small>by {{ challenge.author.username }}</small></h1>
+    <h1 class=""><span class="tag tag-info">{{ challenge.status }}</span> {{ challenge.name }} <small>by {{ challenge.author.username }}</small></h1>
     <p class="lead">
         {{ challenge.description }}
     </p>

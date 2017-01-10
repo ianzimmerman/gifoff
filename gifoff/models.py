@@ -162,6 +162,19 @@ class Challenge(Base):
             return False
     
     @hybrid_property
+    def status(self):
+        if self.upcoming:
+            return 'upcoming'
+        elif self.active:
+            return 'active'
+        elif self.pending:
+            return 'pending'
+        elif self.complete:
+            return 'complete'
+        
+        return False 
+    
+    @hybrid_property
     def time_left(self):
         if self.active or self.upcoming:
             left = (self.end_time - datetime.now()).total_seconds()

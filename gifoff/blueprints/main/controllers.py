@@ -97,7 +97,21 @@ def close(challenge_id):
         if winner:
             challenge.winner = winner
             if db_commit():
-                flash('Challenge completed', 'success')
+                try:
+                    msg = Message("{}: Challenge '{}' completed! Come see the winner".format(current_app.config['APP_NAME'], challenge.name),
+                                    sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),
+                                    bcc=[p.email for p in challenge.players])
+                    
+                    msg.body = "{} by {} has completed.\n".format(challenge.name, challenge.author.username)
+                    msg.body += "{} has humbly selected the winner to be... {} \n".format(challenge.judge.username, challenge.winner.username)
+                    msg.body += "---\n"
+                    msg.body += "See {}'s and everyone else's entries at: {}\n".format(challenge.winner.username, url_for('main.challenge', group_id=challenge.group, challenge_id=challenge, _external=True))
+                    
+                    send_async_email(msg)
+                    
+                    flash('Mail sent, emails on their way!', 'success')
+                except Exception as e:
+                    flash('Mail send failed, send manually: {}'.format(e), 'danger')
         else:
             flash('No Winner Identified.', 'danger')
     
@@ -173,7 +187,7 @@ def new_challenge(group_id):
                                 sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),
                                 bcc=[p.email for p in group.players])
                 
-                msg.body = "New Challenge by {}: {}\n".format(current_user.username, c.name)
+                msg.body = "New Challenge by {}: '{}'\n".format(current_user.username, c.name)
                 msg.body += "{}\n".format(c.description)
                 msg.body += "---\n"
                 msg.body += "The challenge starts at {} and will be judged by {}.\n".format(c.start_time, c.judge.username)
