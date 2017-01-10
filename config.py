@@ -7,6 +7,7 @@ PORT    = int(os.environ.get("PORT", 5000))
 
 # Use a secure, unique and absolutely secret key for
 # signing the data.
+ENV = os.getenv('ENV', '')
 CSRF_SESSION_KEY = os.getenv('CSRF_SESSION_KEY', '')
 
 # Secret key for signing cookies
