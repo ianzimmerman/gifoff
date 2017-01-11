@@ -138,18 +138,21 @@
     {% block scripts %}
     {% endblock %}
     <script type="text/javascript">
-        $(document).ready(function(){
-            // iOS web app full screen hacks.
-            if(window.navigator.standalone == true) {
-                // make all link remain in web app mode.
-                $('a').click(function() {
-                    if($(this).attr('href').slice(-1) != "#"){
-                        window.location = $(this).attr('href');
-                        return false;
-                    }
-                });
+        $( document ).on(
+            "click",
+            "a",
+            function( event ){
+        
+                // Stop the default behavior of the browser, which
+                // is to change the URL of the page.
+                event.preventDefault();
+        
+                // Manually change the location of the page to stay in
+                // "Standalone" mode and change the URL at the same time.
+                location.href = $( event.target ).attr( "href" );
+        
             }
-        });
+        );
     </script>
     {%- if config.GOOGLE_ANALYTICS %}
         <script>
