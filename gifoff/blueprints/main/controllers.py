@@ -197,7 +197,7 @@ def new_challenge(group_id):
             try:
                 msg = Message("New Challenge Posted to {} at {}".format(group.name, current_app.config['APP_NAME']),
                                 sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),
-                                to=['noreply@gifoff.com'],
+                                to=[current_app.config['MAIL_DEFAULT_SENDER']],
                                 bcc=[p.email for p in group.players])
                 
                 msg.body = "New Challenge by {}: '{}'\n".format(current_user.username, c.name)
