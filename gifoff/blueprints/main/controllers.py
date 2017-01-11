@@ -109,7 +109,7 @@ def close(challenge_id):
                 try:
                     msg = Message("{}: Challenge '{}' completed! Come see the winner".format(current_app.config['APP_NAME'], challenge.name),
                                     sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),
-                                    cc=[current_user.email],
+                                    to=[current_user.email],
                                     bcc=[p.email for p in challenge.players])
                     
                     msg.body = "{} by {} has completed.\n".format(challenge.name, challenge.author.username)
@@ -197,6 +197,7 @@ def new_challenge(group_id):
             try:
                 msg = Message("New Challenge Posted to {} at {}".format(group.name, current_app.config['APP_NAME']),
                                 sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),
+                                to=['noreply@gifoff.com'],
                                 bcc=[p.email for p in group.players])
                 
                 msg.body = "New Challenge by {}: '{}'\n".format(current_user.username, c.name)
