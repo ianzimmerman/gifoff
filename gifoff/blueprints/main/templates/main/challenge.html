@@ -14,40 +14,53 @@
 {% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
 {% block content %}
-    <div class="d-flex-inline">
+    <div class="mt-2 pl-0 pr-0 d-flex justify-content-between">
         {{ status_tag(challenge) }}
+        {% if current_user in [challenge.group.owner, challenge.author] %}
+            <a href="{{ url_for('main.delete_challenge', challenge_id=challenge.id) }}" 
+                class="badge badge-danger" onclick="return confirm('Really?')">
+                <i class="fa fa-trash"></i> Delete Challenge
+            </a>
+        {% endif %}
     </div> 
+    
+    <!-- Common Header -->
     <h1 class="display-4" style="margin-bottom: 0">{{ challenge.name }}</h1>
     <p class="text-muted" style="margin-top: 0; margin-bottom: 0">created by {{ challenge.author.username }}</p>
     <p class="text-muted" style="margin-top: 0">judged by {{ challenge.judge.username }}</p>
     <blockquote class="blockquote">
         {{ challenge.description }}
     </blockquote>   
-    <h2>Prompts</h2>
-    <ul>
+    
+    <!-- Prompt List -->
+    <h2 class="h4 text-muted">Prompts</h2>
+    <ul class="list-group">
         {% for p in challenge.prompts %}
-        <li id="prompt{{p.id}}">{{ p.prompt }} <span class="smallD text-danger" data-delete="prompt" data-id="{{p.id}}"></span></li>
+            <li id="prompt{{p.id}}" class="list-group-item">
+                {{ p.prompt }}<span class="smallD text-danger ml-1" data-delete="prompt" data-id="{{p.id}}"></span>
+            </li>
         {% endfor %}
     </ul>
+    
+    <!-- New Prompt Form -->
     {% if current_user == challenge.author and challenge.complete == false  %}
-    <p>
-        <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
-            {{ form.hidden_tag() }}
-            {{ render_field(form.prompt, label=false, placeholder='Add Prompt') }}
+    <form class="mt-3 form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
+        {{ form.hidden_tag() }}
+        {{ render_field(form.prompt, label=false, placeholder='Add Prompt') }}
+        <div class="d-flex justify-content-start">
             <button id="create" class="btn btn-primary" type="submit">Add Prompt</button>
-        </form>
-    </p>
+            {% if current_user in [challenge.group.owner, challenge.author] and challenge.complete != true%}
+                <a href="{{ url_for('main.edit_challenge', challenge_id=challenge) }}" 
+                    class="btn btn-warning ml-1">
+                    <i class="fa fa-pencil"></i> Edit Challenge
+                </a>
+            {% endif %}
+        </div>
+    </form>
     {% endif %}
     
-    {% if challenge.active %}
-        {% if current_user != challenge.judge %}
-            <p class="lead">
-                Enter now and be mindful of your judge: {{challenge.judge.username}}!<br>
-                <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Your Entries</a>
-            </p>
-        {% endif %}
-    {% endif %}
     
+    <!-- Entry List for Judge -->
     {% if challenge.complete == false and current_user == challenge.judge and challenge.entry_count > 0 %}
         <h2 class="h4 text-muted">Judge Entries</h2>
         <div class="list-group">
@@ -56,29 +69,35 @@
                 Entry {{ loop.index }} (Score:&nbsp;<span id="score{{p.id}}">{{ challenge.player_score(p) }}</span>)
             </a>   
             {% endfor %}
-        </div><br>
-        <a class="btn btn-primary" href="{{ url_for('main.close', challenge_id=challenge.id) }}" onclick="return confirm('Close challenge and notify players?')">Complete Challenge!</a>
+        </div>
+        
+        <a class="btn btn-primary mt-2" href="{{ url_for('main.close', challenge_id=challenge.id) }}" 
+            onclick="return confirm('Close challenge and notify players?')">Complete Challenge</a>
+    
+    <!-- Entry list for players -->
     {% elif challenge.complete %}
-        <h2 class="h4 text-muted">Entries</h2>
+        <h2 class="h4 text-muted">Submissions</h2>
         <div class="list-group">
-            <a class="entryLink list-group-item list-group-item-success list-group-item-action" href="#" player_id="{{ challenge.winner.id }}"><i class="fa fa-star"></i>&nbsp;{{ challenge.winner.username }} ({{ challenge.high_score[0] }})</a>
+            <a class="entryLink list-group-item list-group-item-success list-group-item-action" href="#" player_id="{{ challenge.winner.id }}">
+                <i class="fa fa-star"></i>&nbsp;{{ challenge.winner.username }} ({{ challenge.high_score[0] }})</a>
+            
             {% for p in challenge.players if p != challenge.winner %}
-            <a class="entryLink list-group-item  list-group-item-action" href="#" player_id="{{ p.id }}">{{ p.username }} ({{ challenge.player_score(p) }})</a></li>
+                <a class="entryLink list-group-item  list-group-item-action" href="#" player_id="{{ p.id }}">
+                    {{ p.username }} ({{ challenge.player_score(p) }})
+                </a>
             {% endfor %}
         </div>
     {% endif %}
-    {% if current_user in [challenge.group.owner, challenge.author] %}
-        <br><br>
-        <div class="float-md-right">
-            {% if challenge.complete != true %}
-            <a href="{{ url_for('main.edit_challenge', challenge_id=challenge) }}" class="btn btn-warning btn-sm">
-                <i class="fa fa-pencil"></i> Edit Challenge
-            </a>
+    
+    <!-- Entry Link -->
+    {% if challenge.active and current_user != challenge.judge %}
+        <p class="lead mt-2 mb-0">
+            Enter now and be mindful of your judge: {{challenge.judge.username}}!<br>
+            {% if challenge.active and current_user != challenge.judge %}
+                <a class="btn btn-success mt-2" href="{{url_for('main.enter', challenge_id=challenge)}}">
+                    <i class="fa fa-picture-o"></i> Your Entries</a>
             {% endif %}
-            <a href="{{ url_for('main.delete_challenge', challenge_id=challenge.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('Really?')">
-                <i class="fa fa-trash"></i> Delete Challenge
-            </a>
-        </div>
+        </p>
     {% endif %}
     <div id="entry" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="entryTitle" aria-hidden="true">
     	<div class="modal-dialog modal-sm" role="document">

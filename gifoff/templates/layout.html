@@ -95,7 +95,7 @@
             </ul>
           </div>
         </nav>
-        <div class="row">
+        <div class="row hidden-sm-down">
             <div class="col-12">
             {% block breadcrumb %}{% endblock %}
             </div>
@@ -105,7 +105,7 @@
                 <div class="row">
                     <div class="col-sm" id="alert-messages">
                         {% for c, m in messages %}
-                            <div class="alert alert-{{ c }}">
+                            <div class="mt-1 alert alert-{{ c }}">
                                 <i class="fa fa-exclamation-triangle"></i> {{ m|safe }}
                                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                   <span aria-hidden="true">&times;</span>
@@ -116,7 +116,7 @@
                 </div>
             {% endif %}
         {% endwith %}
-        <div class="main-content pl-2 pr-2">
+        <div class="main-content pl-2 pr-2 pl-md-0 pr-md-0">
           {% block content %}
           {% endblock %}
         </div>
@@ -138,24 +138,26 @@
     {% block scripts %}
     {% endblock %}
     <script type="text/javascript">
-        $( document ).on(
-            "click",
-            "a",
-            function( event ){
-        
-                // Stop the default behavior of the browser, which
-                // is to change the URL of the page.
-                //event.preventDefault();
-                if ($( event.target ).prop( "tagName" ) !== "IMG")
-                event.preventDefault();
-        
-                // Manually change the location of the page to stay in
-                // "Standalone" mode and change the URL at the same time.
-                //location.href = $( event.target ).attr( "href" );
-                location.href = $(event.target).closest("a").attr("href");
-        
-            }
-        );
+        if(window.navigator.standalone == true) {
+            $( document ).on(
+                "click",
+                "a",
+                function( event ){
+            
+                    // Stop the default behavior of the browser, which
+                    // is to change the URL of the page.
+                    //event.preventDefault();
+                    if ($( event.target ).prop( "tagName" ) !== "IMG")
+                    event.preventDefault();
+            
+                    // Manually change the location of the page to stay in
+                    // "Standalone" mode and change the URL at the same time.
+                    //location.href = $( event.target ).attr( "href" );
+                    location.href = $(event.target).closest("a").attr("href");
+            
+                }
+            );
+        }
     </script>
     {%- if config.GOOGLE_ANALYTICS %}
         <script>

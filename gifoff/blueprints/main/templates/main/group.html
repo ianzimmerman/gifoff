@@ -7,12 +7,10 @@
 {% block breadcrumb %}{{ breadcrumbs(group=group) }}{% endblock %}
 {% block content %}
     <div class="row">
-        <div class="col-sm-12">
+        <div class="col-12">
             <h1 class="display-4" style="margin-bottom: 0">{{ group.name }}</h1>
             <p class="text-muted" style="margin-top: 0">owned by {{ group.owner.username }}</p>
             <blockquote class="blockquote">{{ group.description }}</blockquote>
-            <a href="{{ url_for('main.join_group', name=group.name, pin=group.pin) }}">Invite Link</a> for new members.</p>
-
             {% if current_user == group.owner %}
                 <form id="authForm" class="form-group">
                 <label for="authors">Manage Authors</label>
@@ -23,6 +21,17 @@
                 </select>
                 </form>
             {% endif %}
+            <div class="d-flex justify-content-start">
+                {% if current_user in group.authors and group.incomplete_count == 0 %}
+                    <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="m-1 btn btn-sm btn-primary">
+                        <i class="fa fa-fw fa-plus-square"></i> New Challenge
+                    </a>
+                {% endif %}
+                <a class="m-1 btn btn-sm btn-success" href="{{ url_for('main.join_group', name=group.name, pin=group.pin) }}">
+                    <i class="fa fa-link"></i> Invite Link</a>
+                <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="m-1 ml-auto btn btn-warning btn-sm align-self-start" onclick="return confirm('Really?')">
+                        <i class="fa fa-sign-out"></i> Leave Group</a>
+            </div>
             <hr>
         </div>
     </div>
@@ -30,32 +39,12 @@
         <div class="col-md">
             <h2 class="h4 text-muted">Active Challenge</h2>
             {{ challenge_list(challenges.active) }}
-            {% if current_user in group.authors and group.incomplete_count == 0 %}
-            <br>
-            <div class="flex-d justify-content-center">
-                <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="p-2 btn btn-lg btn-primary">Create New Challenge</a>
-            </div>
-            {% endif %}
         </div>
         <div class="col-md">
             <h2 class="h4 text-muted">Completed Challenges</h2>
             {{ challenge_list(challenges.recent) }}
         </div>
     </div>
-    <div class="row">
-        <div class="col-sm">
-            <br>
-            <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="btn btn-warning btn-sm" onclick="return confirm('Really?')">
-                <i class="fa fa-sign-out"></i> Leave Group
-            </a>
-        </div>
-    </div>
-    
-    
-    
-    
-    
-
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
