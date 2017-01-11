@@ -43,13 +43,13 @@
     {%- set navigation_bar = [
            
         ] -%}
-    <div class="container">
-        <nav class="navbar navbar-toggleable-sm navbar-light bg-faded rounded-bottom">
-          <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+    <div class="container pl-0 pr-0">
+        <nav class="navbar navbar-toggleable-sm navbar-inverse bg-inverse rounded-bottom">
+          <button class="navbar-toggler navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
-          <a class="navbar-brand" href="{{ url_for('main.index') }}">{{ config.APP_NAME }}</a>
           <div class="collapse navbar-collapse" id="mainNav">
+            <a class="navbar-brand mt-2 mt-md-0" href="{{ url_for('main.index') }}">{{ config.APP_NAME }}</a>
             <ul class="navbar-nav mr-auto">
                 {%- for endpoint, text, children in navigation_bar -%}
                     <li class="nav-item {{ 'active' if request.endpoint == endpoint }}">
@@ -96,7 +96,7 @@
           </div>
         </nav>
         <div class="row">
-            <div class="col-xs-12">
+            <div class="col-12">
             {% block breadcrumb %}{% endblock %}
             </div>
         </div>
@@ -116,7 +116,7 @@
                 </div>
             {% endif %}
         {% endwith %}
-        <div class="main-content">
+        <div class="main-content pl-2 pr-2">
           {% block content %}
           {% endblock %}
         </div>

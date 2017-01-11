@@ -1,6 +1,6 @@
 {% macro breadcrumbs(level=2, group=none, challenge=none) %}
-<nav aria-label="You are here:" role="navigation" class="container hidden-sm-down">
-  <ol class="breadcrumb bg-faded" style="margin-top: 5px; font-size: x-small;">
+<nav aria-label="You are here:" role="navigation" class="container hidden-sm-down mt-2 pl-0 pr-0">
+  <ol class="breadcrumb bg-faded" style="font-size: x-small;">
 	<li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
 	{%- if group is not none -%}
 	<li class="breadcrumb-item">
