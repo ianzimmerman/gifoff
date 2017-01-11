@@ -162,15 +162,15 @@ class Challenge(Base):
             return False
     
     @hybrid_property
-    def status(self):
+    def status_tag(self):
         if self.upcoming:
-            return 'upcoming'
+            return ('Starts in {}'.format(self.starts_in), 'info')
         elif self.active:
-            return 'active'
+            return ('Ends in {}'.format(self.time_left), 'warning')
         elif self.pending:
-            return 'pending'
+            return ('With Judge', 'default')
         elif self.complete:
-            return 'complete'
+            return ('<i class="fa fa-star"></i> {}'.format(self.winner.username), 'success')
         
         return False 
     
@@ -208,11 +208,11 @@ class Challenge(Base):
                     coin = randint(0,1)
                     winner = [winner, p][coin]
         
-        return (max_score, winner)
+        return (round(max_score or 0,1), winner)
     
     @hybrid_method
     def player_score(self, p):
-        return db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar()
+        return round(db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar() or 0,1)
     
     def __repr__(self):
         return '{}'.format(self.name)
@@ -246,7 +246,7 @@ class Entry(Base):
     player = db.relationship('User', backref=db.backref('entries', lazy='dynamic', cascade='all, delete'))
     
     url = db.Column(db.String(250), nullable=True, unique=False)
-    score = db.Column(db.Integer())
+    score = db.Column(db.Float())
     
     challenge_id = association_proxy('prompt', 'challenge_id')
     

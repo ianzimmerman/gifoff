@@ -23,17 +23,22 @@ main.add_app_url_map_converter(IDSlugConverter, 'id_slug')
 #         code = 301
 #         return redirect(url, code=code)
 
+def check_access(group):
+    if group:
+        if current_user not in group.players:
+            abort(401)
+
+
 
 @main.route('')
 @login_required
 def index():
-    
-    challenges = Challenge.query.filter(Challenge.group_id.in_([g.id for g in current_user.player_of])).order_by(Challenge.end_time.desc())
+    challenges = Challenge.query.filter(Challenge.group_id.in_([g.id for g in current_user.player_of]))
     
     c = dict()
-    c['judging'] = challenges.filter(Challenge.judge==current_user, Challenge.winner_id==None)
-    c['active'] = challenges.filter(Challenge.judge!=current_user, Challenge.winner_id==None)
-    c['recent'] = challenges.filter(Challenge.winner_id!=None).limit(10)
+    c['judging'] = challenges.filter(Challenge.judge==current_user, Challenge.winner_id==None).order_by(Challenge.end_time)
+    c['active'] = challenges.filter(Challenge.judge!=current_user, Challenge.winner_id==None).order_by(Challenge.end_time)
+    c['recent'] = challenges.filter(Challenge.winner_id!=None).order_by(Challenge.date_modified.desc()).limit(10)
     
     return render_template('main/index.html', challenges=c)
     
@@ -41,8 +46,9 @@ def index():
 @login_required
 def group(group_id):
     group = Group.query.get_or_404(group_id)
+    check_access(group)
     
-    challenges = Challenge.query.filter(Challenge.group_id==group.id).order_by(Challenge.end_time.desc())
+    challenges = Challenge.query.filter(Challenge.group_id==group.id).order_by(Challenge.date_modified.desc())
     
     c = dict()
     c['active'] = challenges.filter(Challenge.winner_id==None)
@@ -54,6 +60,7 @@ def group(group_id):
 @login_required
 def challenge(group_id, challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
+    check_access(challenge.group)
     
     form = PromptForm()
     if form.validate_on_submit():
@@ -67,6 +74,8 @@ def challenge(group_id, challenge_id):
 @login_required
 def entry(challenge_id, user_id):
     challenge = Challenge.query.get_or_404(challenge_id)
+    check_access(challenge.group)
+    
     user = User.query.get_or_404(user_id)
     
     return render_template('main/entry.html', challenge=challenge, user=user)
@@ -76,7 +85,7 @@ def entry(challenge_id, user_id):
 def score(challenge_id, entry_id, score):
     challenge = Challenge.query.get_or_404(challenge_id)
     
-    if current_user in [challenge.judge, challenge.author]:
+    if current_user == challenge.judge:
         entry = Entry.query.get_or_404(entry_id)
         entry.score = float(score)
         if db_commit():
@@ -84,14 +93,14 @@ def score(challenge_id, entry_id, score):
         else:
             return jsonify({'response':'Not Modified'}), 304
     
-    return jsonify({'response':'Not Authorized'}), 510
+    return jsonify({'response':'Not Authorized'}), 401
 
 @main.route('challenge/<int:challenge_id>/close')
 @login_required
 def close(challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
     
-    if current_user in [challenge.judge, challenge.author]:
+    if current_user == challenge.judge:
         max_score, winner = challenge.high_score
         
         if winner:
@@ -140,6 +149,7 @@ def delete_challenge(challenge_id):
 @login_required
 def enter(challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
+    check_access(challenge.group)
     
     forms = dict()
     for p in challenge.prompts:
@@ -162,6 +172,7 @@ def enter(challenge_id):
 @login_required
 def new_challenge(group_id):
     group = Group.query.get_or_404(group_id)
+    check_access(group)
     
     if group.last_winner:
         judge_id = group.last_winner.id
@@ -208,7 +219,9 @@ def new_challenge(group_id):
 @login_required
 def edit_challenge(challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
-
+    if current_user not in [challenge.author, challenge.group.owner]:
+        abort(401)
+    
     form = ChallengeForm(obj=challenge)
     form.judge_id.choices = [(p.id, p.username) for p in challenge.group.players]
     if form.validate_on_submit():
@@ -278,7 +291,29 @@ def update_authors(group_id):
         
         return jsonify({'response':'OK'}), 200
     else:
-        abort(510)
+        abort(401)
+        
+@main.route('<int:group_id>/leave-group', methods=['GET'])
+@login_required
+def leave_group(group_id):
+    group = Group.query.get_or_404(group_id)
+    
+    if current_user != group.owner:
+        if group in current_user.player_of:
+            group.players.remove(current_user)
+        
+        if group in current_user.author_of:
+            group.authors.remove(current_user)
+        
+        if db_commit():
+            flash("Successfully left group.", 'success')
+            return redirect(url_for('main.index'))
+        else:
+            flash("Something went wrong, you are stuck in this group forever.", 'danger')
+    else:
+        flash("You can't remove yourself if you are the owner, sorry! Delete the group instead.", 'warning')
+        
+    return redirect(url_for('main.group', group_id=group))
 
 
 @main.route('delete/<model>/<int:model_id>')
@@ -303,5 +338,5 @@ def delete(model, model_id):
         db_commit()
         return jsonify({'response':'OK'}), 200
     else:
-        abort(510)
+        abort(401)
         

@@ -1,7 +1,7 @@
 {% if challenge.complete or current_user == challenge.judge or current_user == challenge.author %}
     {% if challenge.complete %}
     <div class="row">
-        <div class="col-xs-12 text-xs-left" style="padding: 0">
+        <div class="col-12 text-left" style="padding: 0">
             <p class="lead">
                 {% if challenge.winner == user %}
                 <i class="fa fa-trophy"></i> 
@@ -11,12 +11,12 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-xs-6 text-xs-left" style="padding: 0">
+        <div class="col-sm text-left" style="padding: 0">
             <small>
                 User Score: {{ challenge.player_score(user) }}         
             </small>
         </div>
-        <div class="col-xs-6 text-xs-left" style="padding: 0"><small>Contest Best: {{ challenge.high_score[0] }}</small></div>
+        <div class="col-sm text-left" style="padding: 0"><small>Contest Best: {{ challenge.high_score[0] }}</small></div>
     </div>
     {% endif %}
     {% for p in challenge.prompts %}
@@ -26,8 +26,8 @@
             <dt>
                 {{ p.prompt }} {% if challenge.complete and p.user_entry(user).score == p.high_score %}<i class="fa fa-star"></i>{% endif %}<br>
                 {% if challenge.complete %}
-                    <div class="float-xs-left"><small>Score: {{ p.user_entry(user).score }}</small></div>
-                    <div class="float-xs-right"><small>Best: {{ p.high_score }}</small></div>
+                    <div class="float-left"><small>Score: {{ p.user_entry(user).score }}</small></div>
+                    <div class="float-right"><small>Best: {{ p.high_score }}</small></div>
                 {% elif p.user_entry(user).url %}
                     <div class="rateYo" rating="{{ p.user_entry(user).score or 0 }}" entry_id="{{p.user_entry(user).id}}" style="margin: 10px"></div>
                 {% endif %}

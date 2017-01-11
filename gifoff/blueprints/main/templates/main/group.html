@@ -6,53 +6,55 @@
 {% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=group) }}{% endblock %}
 {% block content %}
-    <h1>{{ group.name }} <small>owned by {{ group.owner.username }}</small></h1>
-    <p class="lead">{{ group.description }}<br><a href="{{ url_for('main.join_group', name=group.name, pin=group.pin) }}">Invite Link</a></p>
-    
-    {% if current_user == group.owner %}
-    <form id="authForm" class="form-group">
-    <label for="authors">Authors</label>
-    <select name="authors" id="authors" class="form-control" multiple>
-        {% for p in group.players %}
-            <option value="{{p.id}}" {{ 'selected' if p in group.authors }}>{{ p.username }}</option>
-        {% endfor %}  
-    </select>
-    </form>
-    {% endif %}
-    <hr>
-    
-    <h2>Active & Pending Challenges</h2>
-    {{ challenge_list(challenges.active) }}
-    
-    {% if current_user in group.authors and group.incomplete_count == 0 %}
-     <p>
-        <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="btn btn-sm btn-primary">Create New Challenge</a>
-     </p>
-    {% endif %}
-    
-    
-    <h2>Completed Challenges</h2>
-    {{ challenge_list(challenges.recent) }}
-    
-    <h2>Email List</h2>
-    <button class="btn btn-primary" data-toggle="modal" data-target="#playerEmails">View Emails</button>
-    <div id="playerEmails" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="playerTitle" aria-hidden="true">
-    	<div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h5 class="modal-title" id="playerTitle">All Group Players</h5>
-                </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <div class="code" id="playerList" style="font-size: small">{% for p in group.players %}{{p.email}}{{ '; ' if not loop.last }}{% endfor %}</div>
-                    </div>
-                </div>
-            </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <h1 class="display-4" style="margin-bottom: 0">{{ group.name }}</h1>
+            <p class="text-muted" style="margin-top: 0">owned by {{ group.owner.username }}</p>
+            <blockquote class="blockquote">{{ group.description }}</blockquote>
+            <a href="{{ url_for('main.join_group', name=group.name, pin=group.pin) }}">Invite Link</a> for new members.</p>
+
+            {% if current_user == group.owner %}
+                <form id="authForm" class="form-group">
+                <label for="authors">Manage Authors</label>
+                <select name="authors" id="authors" class="form-control" multiple>
+                    {% for p in group.players %}
+                        <option value="{{p.id}}" {{ 'selected' if p in group.authors }}>{{ p.username }}</option>
+                    {% endfor %}  
+                </select>
+                </form>
+            {% endif %}
+            <hr>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md">
+            <h2 class="h4 text-muted">Active Challenge</h2>
+            {{ challenge_list(challenges.active) }}
+            {% if current_user in group.authors and group.incomplete_count == 0 %}
+            <br>
+            <div class="flex-d justify-content-center">
+                <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="p-2 btn btn-lg btn-primary">Create New Challenge</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md">
+            <h2 class="h4 text-muted">Completed Challenges</h2>
+            {{ challenge_list(challenges.recent) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="btn btn-warning btn-sm" onclick="return confirm('Really?')">
+                <i class="fa fa-sign-out"></i> Leave Group
+            </a>
+        </div>
+    </div>
+    
+    
+    
+    
+    
+
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>

@@ -1,6 +1,6 @@
 {% macro breadcrumbs(level=2, group=none, challenge=none) %}
 <nav aria-label="You are here:" role="navigation" class="container hidden-sm-down">
-  <ol class="breadcrumb top-crumb" style="margin-bottom: 5px; font-size: x-small;">
+  <ol class="breadcrumb bg-faded" style="margin-top: 5px; font-size: x-small;">
 	<li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
 	{%- if group is not none -%}
 	<li class="breadcrumb-item">
@@ -25,29 +25,23 @@
 {% endmacro %}
 
 {% macro challenge_list(challenges, group=none) %}
-<ul>
+<div class="list-group">
 {% for c in challenges %}
-    <li> 
-        {% if group %}
-        <span class="tag tag-default">{{c.group}}</span>
-        {% endif %}
-        <span class="tag 
-        {% if c.upcoming %}
-             tag-success">Starts in {{c.starts_in}}
-        {% elif c.active %}
-             tag-warning">{{c.time_left}} Remaining
-        {% elif c.pending %}
-             tag-danger">Ended: Pending Judgement
-        {% elif c.complete %}
-             tag-info">Winner: {{c.winner.username}}
-        {% else %}
-            ">
-        {% endif %}
-        </span>
-        <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}">{{ c.name }}</a>
-    </li>
+    <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}" class="list-group-item list-group-item-action flex-column align-items-start"> 
+        <div class="mb-1">
+            {% if group %}
+                <span class="badge badge-default">{{c.group}}</span>
+            {% endif %}
+            {{ status_tag(c) }}
+        </div>
+        <div class="lead mb-1">
+            {{ c.name }}
+        </div>
+    </a>
+{% else %}
+    <span class="list-group-item list-group-item-warning">No Challenges</span>
 {% endfor %}
-</ul>
+</div>
 {% endmacro %}
 
 {% macro render_field(field, help=none, label=true) %}
@@ -62,4 +56,8 @@
     {% if help %}
     <small class="form-text text-muted">{{ help }}</small>
     {% endif %}
+{% endmacro %}
+
+{% macro status_tag(challenge) %}
+    <span class="badge badge-{{ challenge.status_tag[1] }}">{{ challenge.status_tag[0]|safe }}</span>
 {% endmacro %}

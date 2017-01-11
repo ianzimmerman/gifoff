@@ -2,29 +2,36 @@
 {% block title %}Enter {{ challenge.name }}{% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge, user=current_user.username) }}{% endblock %}
 {% block content %}
-    <div class="">
-        <h1>{{ challenge.name }} <small>authored by {{ challenge.author.username }}</small></h1>
-        <h2>Your Entries</h2>
-        <dl>
-        {% for p in challenge.prompts %}
-            <dt>
-                {{ p.prompt }}<br>
-                {% if not p.user_entry(current_user).score %}
-                    <form class="form-group" action="" method="post" id="form{{p.id}}">
-                        {{ forms[p.id].hidden_tag() }}
-                        <div class="input-group">
-                          {{ forms[p.id].url(class="form-control", type="url") }}
-                          <span class="input-group-btn">
-                            <button id="button{{p.id}}" class="btn btn-primary" type="submit">Save</button>
-                          </span>
-                        </div>
-                        <div id="feedback{{p.id}}" class="form-control-feedback"></div>
-                    </form>
-                {% endif %}
-            </dt>
-            <dd><img src="{{ p.user_entry(current_user).url or '' }}" id="img{{p.id}}"></dd>
-        {% endfor %}
-        </dl>
+    <div class="row">
+        <div class="col-sm">
+            <h1 class="display-4" style="margin-bottom: 0">{{ challenge.name }}</h1>
+            <p class="text-muted" style="margin-top: 0; margin-bottom: 0">created by {{ challenge.author.username }}</p>
+            <p class="text-muted" style="margin-top: 0">judged by {{ challenge.judge.username }}</p>
+            <blockquote class="blockquote">
+                {{ challenge.description }}
+            </blockquote>
+            <h2>Your Entries</h2>
+            <dl>
+            {% for p in challenge.prompts %}
+                <dt>
+                    {{ p.prompt }}<br>
+                    {% if not p.user_entry(current_user).score %}
+                        <form class="form-group" action="" method="post" id="form{{p.id}}">
+                            {{ forms[p.id].hidden_tag() }}
+                            <div class="input-group">
+                              {{ forms[p.id].url(class="form-control", type="url") }}
+                              <span class="input-group-btn">
+                                <button id="button{{p.id}}" class="btn btn-primary" type="submit">Save</button>
+                              </span>
+                            </div>
+                            <div id="feedback{{p.id}}" class="form-control-feedback"></div>
+                        </form>
+                    {% endif %}
+                </dt>
+                <dd><img src="{{ p.user_entry(current_user).url or '' }}" id="img{{p.id}}"></dd>
+            {% endfor %}
+            </dl>
+        </div>
     </div>
 {% endblock %}
 {% block scripts %}
@@ -48,6 +55,7 @@
                     $("input[name=url]", form).attr('class', 'form-control form-control-success');
                     button.attr('class', 'btn btn-success');
                     button.text('Saved');
+                    $("#feedback"+data.prompt_id).text('');
                     $("#img"+data.prompt_id).attr('src', data.url);
                 }
                 else{

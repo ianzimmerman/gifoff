@@ -2,16 +2,22 @@
 {% from "macros.html" import challenge_list %}
 {% block title %}Index{% endblock %}
 {% block content %}
-    <div class="">
-        <h1>Home</h1>
-        <p class="lead"> {{current_user.username}} > {{ current_user.email }}</p>
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>Home</h1>
+            <p class="lead">Logged in as {{current_user.username}}</p>
+        </div>
     </div>
-    <div class="">
-        <h2>Challenges you are Judging</h2>
-        {{ challenge_list(challenges.judging, group=true) }}
-        <h2>Active Challenges</h2>
-        {{ challenge_list(challenges.active, group=true) }}
-        <h2>Recently Ended</h2>
-        {{ challenge_list(challenges.recent, group=true) }}
+    <div class="row">
+        <div class="col-md">
+            <h2 class="h5 text-muted">Active Challenges</h2>
+            {{ challenge_list(challenges.active, group=true) }}
+            <h2 class="h5 text-muted">Challenges to Judge</h2>
+            {{ challenge_list(challenges.judging, group=true) }}
+        </div>
+        <div class="col-md">
+            <h2 class="h5 text-muted">Recently Ended</h2>
+            {{ challenge_list(challenges.recent, group=true) }}
+        </div>
     </div>
 {% endblock %}

@@ -1,10 +1,10 @@
 {% extends "layout.html" %}
-{% from "macros.html" import render_field %}
+{% from "macros.html" import render_field, status_tag %}
 {% block title %}{{ challenge.name }}{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.2.0/jquery.rateyo.min.css">
 <style type="text/css">
-    .tag{
+    .badge{
         cursor: pointer
     }
     .bg-white {
@@ -14,18 +14,15 @@
 {% endblock %}
 {% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
 {% block content %}
-    <h1 class="">{{ challenge.name }} <span class="tag tag-info">{{ challenge.status }}</span><br>
-        <small>by {{ challenge.author.username }}</small>
-    </h1>
-    <p class="lead">
+    <div class="d-flex-inline">
+        {{ status_tag(challenge) }}
+    </div> 
+    <h1 class="display-4" style="margin-bottom: 0">{{ challenge.name }}</h1>
+    <p class="text-muted" style="margin-top: 0; margin-bottom: 0">created by {{ challenge.author.username }}</p>
+    <p class="text-muted" style="margin-top: 0">judged by {{ challenge.judge.username }}</p>
+    <blockquote class="blockquote">
         {{ challenge.description }}
-    </p>
-    {% if challenge.upcoming %}
-        <p class="text-success">Starts in: {{challenge.starts_in}}</p>
-    {% elif challenge.active %}
-        <p class="text-warning">Time Left: {{ challenge.time_left }}</p>
-    {% endif %}
-    <p class="">Judge: {{challenge.judge.username}}</p>
+    </blockquote>   
     <h2>Prompts</h2>
     <ul>
         {% for p in challenge.prompts %}
@@ -36,43 +33,39 @@
     <p>
         <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
             {{ form.hidden_tag() }}
-            {{ render_field(form.prompt, label=false, placeholder='Add New Prompt') }}
-            <button id="create" class="btn btn-primary" type="submit">Create</button>
+            {{ render_field(form.prompt, label=false, placeholder='Add Prompt') }}
+            <button id="create" class="btn btn-primary" type="submit">Add Prompt</button>
         </form>
     </p>
     {% endif %}
     
     {% if challenge.active %}
         {% if current_user != challenge.judge %}
-            <p>
-                <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Enter Now!</a>
+            <p class="lead">
+                Enter now and be mindful of your judge: {{challenge.judge.username}}!<br>
+                <a class="btn btn-primary" href="{{url_for('main.enter', challenge_id=challenge)}}">Your Entries</a>
             </p>
         {% endif %}
     {% endif %}
     
     {% if challenge.complete == false and current_user == challenge.judge and challenge.entry_count > 0 %}
-<!--         <a class="btn btn-primary" href="#">Judge Entries</a> -->
-        <h2>Judge Entries</h2>
-        <ul>
+        <h2 class="h4 text-muted">Judge Entries</h2>
+        <div class="list-group">
             {% for p in challenge.players %}
-            <li>
-                <a class="entryLink" href="#" player_id="{{ p.id }}">Entry {{ loop.index }}</a>
-                     (Score: <span id="score{{p.id}}">{{ challenge.player_score(p) }}</span>)
-            </li>
+            <a class="entryLink list-group-item list-group-item-action" href="#" player_id="{{ p.id }}">
+                Entry {{ loop.index }} (Score:&nbsp;<span id="score{{p.id}}">{{ challenge.player_score(p) }}</span>)
+            </a>   
             {% endfor %}
-        </ul>
-        <a class="btn btn-primary" href="{{ url_for('main.close', challenge_id=challenge.id) }}">Complete Challenge!</a>
+        </div><br>
+        <a class="btn btn-primary" href="{{ url_for('main.close', challenge_id=challenge.id) }}" onclick="return confirm('Close challenge and notify players?')">Complete Challenge!</a>
     {% elif challenge.complete %}
-        <h2>Winner</h2>
-        <ul>
-            <li><a class="entryLink" href="#" player_id="{{ challenge.winner.id }}">{{ challenge.winner.username }}</a></li>
-        </ul>
-        <h2>All Players</h2>
-        <ul>
+        <h2 class="h4 text-muted">Entries</h2>
+        <div class="list-group">
+            <a class="entryLink list-group-item list-group-item-success list-group-item-action" href="#" player_id="{{ challenge.winner.id }}"><i class="fa fa-star"></i>&nbsp;{{ challenge.winner.username }} ({{ challenge.high_score[0] }})</a>
             {% for p in challenge.players if p != challenge.winner %}
-            <li><a class="entryLink" href="#" player_id="{{ p.id }}">{{ p.username }}</a></li>
+            <a class="entryLink list-group-item  list-group-item-action" href="#" player_id="{{ p.id }}">{{ p.username }} ({{ challenge.player_score(p) }})</a></li>
             {% endfor %}
-        </ul>
+        </div>
     {% endif %}
     {% if current_user in [challenge.group.owner, challenge.author] %}
         <br><br>
@@ -91,10 +84,10 @@
     	<div class="modal-dialog modal-sm" role="document">
             <div class="modal-content">
                 <div class="modal-header">
+                    <h5 class="modal-title" id="entryTitle">{{ challenge.name }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                       <span aria-hidden="true">&times;</span>
                     </button>
-                    <h5 class="modal-title" id="entryTitle">{{ challenge.name }}</h5>
                 </div>
                 <div class="modal-body">
                     <div class="container-fluid">
@@ -117,7 +110,7 @@
             });
             
             $(document).on("click", ".deleteD",function() {
-                $(this).parent().html('<span class="cancelD tag tag-success text-white"><i class="fa fa-times "></i> Cancel</span> <span class="confirmD tag tag-danger text-white"><i class="fa fa-trash confirmD"></i> Delete</span>');
+                $(this).parent().html('<span class="cancelD badge badge-success text-white"><i class="fa fa-times "></i> Cancel</span> <span class="confirmD badge badge-danger text-white"><i class="fa fa-trash confirmD"></i> Delete</span>');
             });
             
             $(document).on("click", ".cancelD",function() {
@@ -174,7 +167,7 @@
           
           $('#entry').on('hidden.bs.modal', function (e) {
               //console.log(player_id);
-              $('#score'+player_id).html(window.total_score.toFixed(2));
+              $('#score'+player_id).html(window.total_score.toFixed(1));
           })
           
         });
