@@ -145,11 +145,14 @@
         
                 // Stop the default behavior of the browser, which
                 // is to change the URL of the page.
+                //event.preventDefault();
+                if ($( event.target ).prop( "tagName" ) !== "IMG")
                 event.preventDefault();
         
                 // Manually change the location of the page to stay in
                 // "Standalone" mode and change the URL at the same time.
-                location.href = $( event.target ).attr( "href" );
+                //location.href = $( event.target ).attr( "href" );
+                location.href = $(event.target).closest("a").attr("href");
         
             }
         );
