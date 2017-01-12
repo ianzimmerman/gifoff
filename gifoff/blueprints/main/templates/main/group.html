@@ -16,7 +16,7 @@
                 <label for="authors">Manage Authors</label>
                 <select name="authors" id="authors" class="form-control" multiple>
                     {% for p in group.players %}
-                        <option value="{{p.id}}" {{ 'selected' if p in group.authors }}>{{ p.username }} {{ p.group_wins(group) }} {{ p.group_score(group) }}</option>
+                        <option value="{{p.id}}" {{ 'selected' if p in group.authors }}>{{ p.username }}</option>
                     {% endfor %}  
                 </select>
                 </form>
@@ -58,11 +58,6 @@
         <div class="col-md">
             <h2 class="h4 text-muted">Completed Challenges</h2>
             {{ challenge_list(challenges.recent) }}
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md">
-            
         </div>
     </div>
 {% endblock %}
