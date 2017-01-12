@@ -1,5 +1,7 @@
-from datetime import datetime, timedelta    
+from datetime import datetime, timedelta  
 from threading import Thread
+
+import arrow  
 
 from flask import Blueprint, url_for, render_template, request, redirect, abort, flash, session, current_app, jsonify
 from flask_mail import Message
@@ -36,8 +38,8 @@ def index():
     challenges = Challenge.query.filter(Challenge.group_id.in_([g.id for g in current_user.player_of]))
     
     c = dict()
-    c['judging'] = challenges.filter(Challenge.judge==current_user, Challenge.winner_id==None).order_by(Challenge.end_time)
-    c['active'] = challenges.filter(Challenge.judge!=current_user, Challenge.winner_id==None).order_by(Challenge.end_time)
+    c['judging'] = challenges.filter(Challenge.judge==current_user, Challenge.winner_id==None).order_by(Challenge.utc_end_time)
+    c['active'] = challenges.filter(Challenge.judge!=current_user, Challenge.winner_id==None).order_by(Challenge.utc_end_time)
     c['recent'] = challenges.filter(Challenge.winner_id!=None).order_by(Challenge.date_modified.desc()).limit(10)
     
     return render_template('main/index.html', challenges=c)
@@ -178,22 +180,35 @@ def new_challenge(group_id):
         judge_id = group.last_winner.id
     else:
         judge_id = current_user.id
+        
+    a = arrow.utcnow()
     
-    date_range = {'s': datetime.now() + timedelta(minutes=10), 'e': datetime.now() + timedelta(hours=4, minutes=10)}
-    form = ChallengeForm(start_time=date_range['s'], end_time=date_range['e'], judge_id=judge_id)
+    date_range = {
+        's': a.replace(minutes=+10).to(current_app.config['DEFAULT_TIMEZONE']).naive, 
+        'e': a.replace(hours=+4, minutes=+10).to(current_app.config['DEFAULT_TIMEZONE']).naive
+    }
+    
+    print(a, date_range)
+    
+    form = ChallengeForm(utc_start_time=date_range['s'], utc_end_time=date_range['e'], judge_id=judge_id)
     form.judge_id.choices = [(p.id, p.username) for p in group.players]
     
     if form.validate_on_submit() and group.active_count == 0:
+        st = arrow.get(form.utc_start_time.data)
+        et = arrow.get(form.utc_end_time.data)
+        
+        print(st, et)
+        
         c = Challenge(group=group,
                         author=current_user, 
                         name=form.name.data, 
                         description=form.description.data, 
                         judge_id=int(form.judge_id.data), 
-                        start_time=form.start_time.data, 
-                        end_time=form.end_time.data
+                        utc_start_time=arrow.get(st.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime, 
+                        utc_end_time=arrow.get(et.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime
                     )
         
-        if db_commit():
+        if db_commit():            
             try:
                 msg = Message("New Challenge Posted to {} at {}".format(group.name, current_app.config['APP_NAME']),
                                 sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),
@@ -203,7 +218,7 @@ def new_challenge(group_id):
                 msg.body = "New Challenge by {}: '{}'\n".format(current_user.username, c.name)
                 msg.body += "{}\n".format(c.description)
                 msg.body += "---\n"
-                msg.body += "The challenge starts at {} and will be judged by {}.\n".format(c.start_time, c.judge.username)
+                msg.body += "The challenge starts at {} ({}) and will be judged by {}.\n".format(st.format('YYYY-MM-DD HH:mm'), current_app.config['DEFAULT_TIMEZONE'], c.judge.username)
                 msg.body += "Get Started: {}\n".format(url_for('main.challenge', group_id=group, challenge_id=c, _external=True))
                 
                 send_async_email(msg)
@@ -223,14 +238,22 @@ def edit_challenge(challenge_id):
     if current_user not in [challenge.author, challenge.group.owner]:
         abort(401)
     
+    if request.method != 'POST':
+        challenge.utc_start_time = challenge.start_time.to(current_app.config['DEFAULT_TIMEZONE']).datetime
+        challenge.utc_end_time = challenge.end_time.to(current_app.config['DEFAULT_TIMEZONE']).datetime
+    
     form = ChallengeForm(obj=challenge)
     form.judge_id.choices = [(p.id, p.username) for p in challenge.group.players]
+    
     if form.validate_on_submit():
+        st = arrow.get(form.utc_start_time.data)
+        et = arrow.get(form.utc_end_time.data)
+    
         challenge.name = form.name.data
         challenge.description = form.description.data 
         challenge.judge_id = int(form.judge_id.data)
-        challenge.start_time = form.start_time.data
-        challenge.end_time = form.end_time.data
+        challenge.utc_start_time=arrow.get(st.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime
+        challenge.utc_end_time=arrow.get(et.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime
         
         if db_commit():
             return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
@@ -259,7 +282,23 @@ def new_group():
 @main.route('join-group', methods=['GET', 'POST'])
 @login_required
 def join_group():
-    form = GroupForm(name=request.args.get('name'), pin=request.args.get('pin'))
+    
+    if request.args.get('name') and request.args.get('pin'):
+        g = Group.query.filter(Group.name==request.args.get('name'), Group.pin==int(request.args.get('pin'))).first()
+        if g:
+            if current_user not in g.players:
+                g.players.append(current_user)
+                if db_commit():
+                    flash('Successfully joined group {}'.format(g.name), 'success')
+            else:
+                flash('You are already a member of this group. Try right clicking the link to share.', 'info')
+            
+            return redirect(url_for('main.group', group_id=g))
+            
+        else:
+            flash('Group & PIN not found.', 'warning')
+    
+    form = GroupForm()
     if request.method == 'POST':
         g = Group.query.filter(Group.name==form.name.data, Group.pin==form.pin.data).first()
         if g:

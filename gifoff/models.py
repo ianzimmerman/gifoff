@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta
 from random import randint
+
+import arrow
+
 from flask_security import UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
+
 from sqlalchemy import func
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
@@ -115,8 +119,9 @@ class Challenge(Base):
     name = db.Column(db.String(250), nullable=False, unique=False)
     description = db.Column(db.String(250), nullable=True, unique=False)
     
-    start_time = db.Column(db.DateTime(), default=datetime.now() + timedelta(minutes=10))
-    end_time = db.Column(db.DateTime(), default=datetime.now() + timedelta(hours=4, minutes=10))
+    #always store UTC time
+    utc_start_time = db.Column(db.DateTime())
+    utc_end_time = db.Column(db.DateTime())
     
     author_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     author = db.relationship('User', foreign_keys=[author_id], backref=db.backref('authored', lazy='dynamic', cascade='all, delete'))
@@ -126,6 +131,18 @@ class Challenge(Base):
     
     winner_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     winner = db.relationship('User', foreign_keys=[winner_id], backref=db.backref('won', lazy='dynamic', cascade='all, delete'))
+    
+    @hybrid_property
+    def start_time(self):
+        return arrow.get(self.utc_start_time)
+    
+    @hybrid_property
+    def end_time(self):
+        return arrow.get(self.utc_end_time)
+        
+    @hybrid_property
+    def entry_count(self):
+        return get_count(Entry, challenge_id=self.id)
     
     @hybrid_property
     def entry_count(self):
@@ -140,23 +157,23 @@ class Challenge(Base):
     
     @hybrid_property
     def active(self):
-        if self.complete or datetime.now() > self.end_time :
+        if self.complete or arrow.utcnow() > self.end_time:
             return False
-        elif datetime.now() < self.start_time:
+        elif arrow.utcnow() < self.start_time:
             return False
-        elif datetime.now() < self.end_time:
+        elif arrow.utcnow() < self.end_time:
             return True
     
     @hybrid_property
     def pending(self):
-        if self.complete is False and datetime.now() > self.end_time:
+        if self.complete is False and arrow.utcnow() > self.end_time:
             return True
         else:
             return False
     
     @hybrid_property
     def upcoming(self):
-        if self.complete is False and datetime.now() < self.start_time:
+        if self.complete is False and arrow.utcnow() < self.start_time:
             return True
         else:
             return False
@@ -164,9 +181,9 @@ class Challenge(Base):
     @hybrid_property
     def status_tag(self):
         if self.upcoming:
-            return ('Starts in {}'.format(self.starts_in), 'info')
+            return ('Starts {}'.format(self.starts_in), 'info')
         elif self.active:
-            return ('Ends in {}'.format(self.time_left), 'warning')
+            return ('Ends {}'.format(self.time_left), 'warning')
         elif self.pending:
             return ('With Judge', 'default')
         elif self.complete:
@@ -177,16 +194,14 @@ class Challenge(Base):
     @hybrid_property
     def time_left(self):
         if self.active or self.upcoming:
-            left = (self.end_time - datetime.now()).total_seconds()
-            return "{}h {}m".format(int(left//3600), int(left%3600//60))
+            return self.end_time.humanize()
         else:
             return None
     
     @hybrid_property
     def starts_in(self):
         if self.upcoming:
-            left = (self.start_time - datetime.now()).total_seconds()
-            return "{}h {}m".format(int(left//3600), int(left%3600//60))
+            return self.start_time.humanize()
         else:
             return None
     
@@ -197,18 +212,19 @@ class Challenge(Base):
     @hybrid_property
     def high_score(self):
         max_score = 0
-        winner = None
+        winners = list()
         for p in self.players:
             p_score = db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar()
             if p_score:
                 if p_score > max_score:
                     max_score = p_score
-                    winner = p
+                    winners = [p]
                 elif p_score == max_score:
-                    coin = randint(0,1)
-                    winner = [winner, p][coin]
+                    winners.append(p)
         
-        return (round(max_score or 0,1), winner)
+        dice = randint(0,len(winners)-1)
+        
+        return (round(max_score or 0,1), winners[dice])
     
     @hybrid_method
     def player_score(self, p):

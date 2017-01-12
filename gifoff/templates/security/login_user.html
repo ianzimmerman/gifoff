@@ -18,7 +18,7 @@
 		                <label for="{{ field.id }}" class="control-label">{{ field.label.text }}</label>
 		            </div>
 		            <div class="text-xs-right float-xs-right col-md-6">
-		                    <a href="{{ url_for('security.register') }}" tabindex='190'>
+		                    <a href="{{ url_for('security.register', next=request.args.next) }}" tabindex='190'>
 		                        New here? Register.</a>
 		            </div>
 		        </div>

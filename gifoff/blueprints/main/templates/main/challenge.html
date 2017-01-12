@@ -66,7 +66,7 @@
         <div class="list-group">
             {% for p in challenge.players %}
             <a class="entryLink list-group-item list-group-item-action" href="#" player_id="{{ p.id }}">
-                Entry {{ loop.index }} (Score:&nbsp;<span id="score{{p.id}}">{{ challenge.player_score(p) }}</span>)
+                Player {{ loop.index }} entries (Score:&nbsp;<span id="score{{p.id}}">{{ challenge.player_score(p) }}</span>)
             </a>   
             {% endfor %}
         </div>

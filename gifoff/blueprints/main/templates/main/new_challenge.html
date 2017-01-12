@@ -11,13 +11,14 @@
 {% block breadcrumb %}{{ breadcrumbs(group=group, new="New Challenge") }}{% endblock %}
 {% block content %}
     <h1>Create New Challenge</h1>
+    <p class="alert alert-info">Please note all times are {{ config.DEFAULT_TIMEZONE }}</p>
     <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
         {{ form.hidden_tag() }}
         {{ render_field(form.name) }}
         {{ render_field(form.description) }}
         {{ render_field(form.judge_id) }}
-        {{ render_field(form.start_time) }}
-        {{ render_field(form.end_time) }}
+        {{ render_field(form.utc_start_time) }}
+        {{ render_field(form.utc_end_time) }}
         <br><button class="btn btn-primary" type="submit">Create</button>
     </form>
     
@@ -29,7 +30,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
 //         $("#judge").select2();
-        $('input[name="start_time"]').daterangepicker({
+        $('input[name="utc_start_time"]').daterangepicker({
             "singleDatePicker": true,
             "timePicker": true,
             "timePicker24Hour": true,
@@ -38,7 +39,7 @@
                 "format": "YYYY-MM-DD HH:mm"
             }       
         });
-        $('input[name="end_time"]').daterangepicker({
+        $('input[name="utc_end_time"]').daterangepicker({
             "singleDatePicker": true,
             "timePicker": true,
             "timePicker24Hour": true,
