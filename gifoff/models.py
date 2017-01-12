@@ -6,7 +6,7 @@ import arrow
 from flask_security import UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
 
-from sqlalchemy import func
+from sqlalchemy import func, select, desc
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
@@ -23,10 +23,12 @@ def db_commit():
         return False
 
 def get_count(model, **filters):
-    #return q.with_entities(func.count()).scalar()
-    #return q.with_entities([func.count()]).order_by(None).scalar()
+    # return q.with_entities([func.count()]).order_by(None).scalar()
     return db.session.query(func.count(model.id)).filter_by(**filters).scalar() or 0
-    
+
+def q_count(q):
+    return q.count() or 0
+
     
 class Base(db.Model):
     __abstract__ = True
@@ -71,6 +73,27 @@ class User(Base, UserMixin):
     player_of = db.relationship('Group', secondary='group_players')
     author_of = db.relationship('Group', secondary='group_authors')
     
+    @hybrid_method
+    def group_entries(self, group):  
+        return db.session.query(func.count(Entry.id)).filter(Entry.player_id==self.id).filter(Entry.prompt_id.in_(group.prompts)).scalar() or 0
+    
+    @hybrid_method
+    def group_score(self, group):  
+        this = db.session.query(func.sum(Entry.score)).filter(Entry.player_id==self.id).filter(Entry.prompt_id.in_(group.prompts))
+        return round(this.scalar() or 0, 1)
+    
+    @group_score.expression
+    def group_score(self, group):
+        return select([func.sum(Entry.score)]).where(Entry.player_id==self.id).where(Entry.prompt_id.in_(group.prompts))
+    
+    @hybrid_method
+    def group_wins(self, group):
+        return q_count(db.session.query(Challenge).filter(Challenge.winner_id==self.id, Challenge.group_id==group.id))
+    
+    @group_wins.expression
+    def group_wins(self, group):
+        return select([func.count(Challenge.winner_id)]).where(Challenge.winner_id==self.id).where(Challenge.group_id==group.id)
+    
     def __repr__(self):
         return '{}'.format(self.email)
 
@@ -88,16 +111,20 @@ class Group(Base):
     authors = db.relationship('User', secondary='group_authors')
     
     @hybrid_property
+    def prompts(self):
+        return [p.id for c in self.challenges for p in c.prompts]
+    
+    @hybrid_property
     def active_count(self):
-        return len([c.id for c in self.challenges if c.active == True])
+        return q_count(self.challenges.filter(Challenge.active==True))
     
     @hybrid_property
     def pending_count(self):
-        return len([c.id for c in self.challenges if c.pending == True])
+        return q_count(self.challenges.filter(Challenge.pending==True))
     
     @hybrid_property
     def incomplete_count(self):
-        return len([c.id for c in self.challenges if c.complete == False])
+        return q_count(self.challenges.filter(Challenge.complete==False))
     
     @hybrid_property
     def last_winner(self):
@@ -107,6 +134,11 @@ class Group(Base):
         else:
             return None
     
+    @hybrid_property
+    def leaders(self):
+        this = db.session.query(User).filter(User.id.in_([p.id for p in self.players])).order_by(desc(User.group_wins(self))).order_by(desc(User.group_score(self))).limit(3)
+        return this
+          
     def __repr__(self):
         return '{}'.format(self.name)
     
@@ -144,9 +176,9 @@ class Challenge(Base):
     def entry_count(self):
         return get_count(Entry, challenge_id=self.id)
     
-    @hybrid_property
-    def entry_count(self):
-        return get_count(Entry, challenge_id=self.id)
+#     @hybrid_property
+#     def entry_count(self):
+#         return get_count(Entry, challenge_id=self.id)
     
     @hybrid_property
     def complete(self):

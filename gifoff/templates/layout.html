@@ -51,7 +51,7 @@
           </button>
           <div class="collapse navbar-collapse" id="mainNav">
             <a class="navbar-brand mt-2 mt-md-0" href="{{ url_for('main.index') }}">{{ config.APP_NAME }}</a>
-            <ul class="navbar-nav mr-auto">
+            <ul class="navbar-nav d-flex justify-content-start">
                 {%- for endpoint, text, children in navigation_bar -%}
                     <li class="nav-item {{ 'active' if request.endpoint == endpoint }}">
                         <a class="nav-link" href="{{ url_for(endpoint) }}">{{ text }}</a>
@@ -77,19 +77,14 @@
                 {% block navigation %}
                 {% endblock %}
                 {% if current_user.is_authenticated %}
-                    {% if current_user.has_role('ADMIN') %}
-                        <li class="nav-item float-right">
-                            <a class="nav-link" href="{{ url_for('admin.index') }}">Admin</a>
-                        </li>
-                    {% endif %}
-                    <li class="nav-item float-right">
+                    <li class="nav-item ml-auto">
                         <a class="nav-link" href="{{ url_for('security.logout') }}">Sign out</a>
                     </li>
                 {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('security.register') }}">Register</a>
                     </li>
-                    <li  class="nav-item float-right">
+                    <li  class="nav-item ml-auto">
                         <a class="nav-link" href="{{ url_for('security.login') }}">Sign in</a>
                     </li>
                 {% endif %}

@@ -7,6 +7,8 @@ from flask import Blueprint, url_for, render_template, request, redirect, abort,
 from flask_mail import Message
 from flask_security import current_user, login_required
 
+from sqlalchemy import desc
+
 from .helpers import IDSlugConverter, add_app_url_map_converter
 from ...models import db, db_commit, User, Group, Challenge, Entry, Prompt
 from ...forms import GroupForm, ChallengeEntry, ChallengeForm, PromptForm
@@ -188,16 +190,12 @@ def new_challenge(group_id):
         'e': a.replace(hours=+4, minutes=+10).to(current_app.config['DEFAULT_TIMEZONE']).naive
     }
     
-    print(a, date_range)
-    
     form = ChallengeForm(utc_start_time=date_range['s'], utc_end_time=date_range['e'], judge_id=judge_id)
     form.judge_id.choices = [(p.id, p.username) for p in group.players]
     
     if form.validate_on_submit() and group.active_count == 0:
         st = arrow.get(form.utc_start_time.data)
         et = arrow.get(form.utc_end_time.data)
-        
-        print(st, et)
         
         c = Challenge(group=group,
                         author=current_user, 
