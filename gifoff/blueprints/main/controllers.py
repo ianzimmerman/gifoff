@@ -1,3 +1,4 @@
+from uuid import uuid4
 from datetime import datetime, timedelta  
 from threading import Thread
 
@@ -120,6 +121,8 @@ def close(challenge_id):
                     msg.body += "{} has humbly selected the winner to be... {} \n".format(challenge.judge.username, challenge.winner.username)
                     msg.body += "---\n"
                     msg.body += "See {}'s and everyone else's entries at: {}\n".format(challenge.winner.username, url_for('main.challenge', group_id=challenge.group, challenge_id=challenge, _external=True))
+                    msg.body += "---\n"
+                    msg.body += "Group Invite Link: {}".format(url_for('main.join_group', uuid=challenge.group.pin, _external=True))
                     
                     send_async_email(msg)
                     
@@ -218,6 +221,8 @@ def new_challenge(group_id):
                 msg.body += "---\n"
                 msg.body += "The challenge starts at {} ({}) and will be judged by {}.\n".format(st.format('YYYY-MM-DD HH:mm'), current_app.config['DEFAULT_TIMEZONE'], c.judge.username)
                 msg.body += "Get Started: {}\n".format(url_for('main.challenge', group_id=group, challenge_id=c, _external=True))
+                msg.body += "---\n"
+                msg.body += "Group Invite Link: {}".format(url_for('main.join_group', uuid=group.pin, _external=True))
                 
                 send_async_email(msg)
                 
@@ -266,9 +271,10 @@ def new_group():
         g = Group(owner=current_user, 
                     name=form.name.data, 
                     description=form.description.data, 
-                    pin=form.pin.data
                 )
-                
+        
+        g.pin = str(uuid4())
+        
         g.players.append(g.owner)
         g.authors.append(g.owner)
                     
@@ -277,36 +283,24 @@ def new_group():
     
     return render_template('main/new_group.html', group=group, form=form)
 
-@main.route('join-group', methods=['GET', 'POST'])
+@main.route('join-group/<uuid>', methods=['GET'])
 @login_required
-def join_group():
+def join_group(uuid):
     
-    if request.args.get('name') and request.args.get('pin'):
-        g = Group.query.filter(Group.name==request.args.get('name'), Group.pin==int(request.args.get('pin'))).first()
-        if g:
-            if current_user not in g.players:
-                g.players.append(current_user)
-                if db_commit():
-                    flash('Successfully joined group {}'.format(g.name), 'success')
-            else:
-                flash('You are already a member of this group. Try right clicking the link to share.', 'info')
-            
-            return redirect(url_for('main.group', group_id=g))
-            
-        else:
-            flash('Group & PIN not found.', 'warning')
-    
-    form = GroupForm()
-    if request.method == 'POST':
-        g = Group.query.filter(Group.name==form.name.data, Group.pin==form.pin.data).first()
-        if g:
+    g = Group.query.filter(Group.pin==uuid).first()
+    if g:
+        if current_user not in g.players:
             g.players.append(current_user)
             if db_commit():
-                return jsonify({'response': 'OK', 'url': url_for('main.group', group_id=g)}), 200
+                flash('Successfully joined group {}'.format(g.name), 'success')
         else:
-            return jsonify({'response': 'ERROR', 'error': 'Group or PIN not found'}), 200
+            flash('You are already a member of this group. Try right clicking the link to share.', 'info')
+        
+        return redirect(url_for('main.group', group_id=g))
             
-    return render_template('main/join_group.html', form=form)
+    flash('Group not found.', 'warning')
+    return redirect(url_for('main.index'))
+    
 
 @main.route('<int:group_id>/update-authors', methods=['POST'])
 @login_required
@@ -357,7 +351,7 @@ def leave_group(group_id):
 @main.route('delete/<model>/<int:model_id>')
 @login_required
 def delete(model, model_id):
-    case = dict(prompt=Prompt)
+    case = dict(prompt=Prompt, group=Group)
     switch = case.get(model)
     
     if switch:
@@ -367,14 +361,24 @@ def delete(model, model_id):
     
     def auth_delete(model_obj):
         if isinstance(model_obj, Prompt):
-            return current_user in [model_obj.challenge.author, model_obj.challenge.group.owner]
+            if current_user in [model_obj.challenge.author, model_obj.challenge.group.owner]:
+                return 'json'
+        
+        if isinstance(model_obj, Group):
+            if current_user == model_obj.owner:
+                return 'redirect'
         
         return False
     
-    if auth_delete(obj):
+    response = auth_delete(obj)
+    if response:
         db.session.delete(obj)
         db_commit()
-        return jsonify({'response':'OK'}), 200
+        
+        if response == 'json':
+            return jsonify({'response':'OK'}), 200
+        else:
+            return redirect(url_for('main.index'))
     else:
         abort(401)
         

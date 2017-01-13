@@ -27,10 +27,21 @@
                         <i class="fa fa-fw fa-plus-square"></i> New Challenge
                     </a>
                 {% endif %}
-                <a class="m-1 btn btn-sm btn-success" href="{{ url_for('main.join_group', name=group.name, pin=group.pin) }}">
-                    <i class="fa fa-link"></i> Invite Link</a>
+                {% if current_user == group.owner %}
+                <a href="{{ url_for('main.delete', model='group', model_id=group.id) }}" class="m-1 ml-auto btn btn-danger btn-sm align-self-start" onclick="return confirm('Really?')">
+                    <i class="fa fa-trash"></i> Delete Group
+                </a>
+                {% else %}
                 <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="m-1 ml-auto btn btn-warning btn-sm align-self-start" onclick="return confirm('Really?')">
-                        <i class="fa fa-sign-out"></i> Leave Group</a>
+                    <i class="fa fa-sign-out"></i> Leave Group
+                </a>
+                {% endif %}
+            </div>
+            <div class="input-group input-group-sm mt-2 ml-1 mr-2">
+              <span class="input-group-btn">
+                <button class="btn btn-success copy-button" type="button"><i class="fa fa-fw fa-clipboard"></i> Copy Invite Link</button>
+              </span>
+              <input type="text" class="form-control copy-text" value="{{ url_for('main.join_group', uuid=group.pin, _external=True) }}" readonly>
             </div>
             <hr>
         </div>
@@ -75,6 +86,13 @@
             $authForm = $('#authForm').serialize();
             console.log($authForm);
             $.post(Flask.url_for('main.update_authors', { 'group_id':{{ group.id }} }), $authForm);
+        });
+        
+        $(".copy-button").click(function(e) {
+            $(".copy-text").select();
+            document.execCommand('copy');
+            $(".copy-button").html('<i class="fa fa-fw fa-check"></i> Copied!');
+            //alert('Link copied to clipboard.');
         });
         
     });

@@ -105,7 +105,7 @@ class Group(Base):
     
     name = db.Column(db.String(250), nullable=False, unique=True)
     description = db.Column(db.String(250), nullable=True, unique=False)
-    pin  = db.Column(db.Integer(), nullable=False, unique=False)
+    pin  = db.Column(db.String(250), nullable=False, unique=False)
     
     players = db.relationship('User', secondary='group_players')
     authors = db.relationship('User', secondary='group_authors')
@@ -116,15 +116,16 @@ class Group(Base):
     
     @hybrid_property
     def active_count(self):
-        return q_count(self.challenges.filter(Challenge.active==True))
-    
-    @hybrid_property
-    def pending_count(self):
-        return q_count(self.challenges.filter(Challenge.pending==True))
+        return db.session.query(func.count(Challenge.id))\
+                .filter(Challenge.winner_id==None, Challenge.group_id==self.id, Challenge.utc_end_time > arrow.utcnow().naive).scalar()
+#     
+#     @hybrid_property
+#     def pending_count(self):
+#         return db.session.query(func.count(Challenge.id)).filter(Challenge.pending==True, Challenge.group_id==self.id).scalar()
     
     @hybrid_property
     def incomplete_count(self):
-        return q_count(self.challenges.filter(Challenge.complete==False))
+        return db.session.query(func.count(Challenge.id)).filter(Challenge.winner_id==None, Challenge.group_id==self.id).scalar()
     
     @hybrid_property
     def last_winner(self):

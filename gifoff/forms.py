@@ -35,7 +35,6 @@ def unique_name(model):
 class GroupForm(Form):
     name = StringField('Name', [validators.DataRequired('Name Required'), unique_name(Group)])
     description = TextAreaField('Description', [validators.Optional()])
-    pin = IntegerField('Access PIN, A # to allow people to join your group.', [validators.DataRequired('PIN Required')])
 
 class PromptForm(Form):
     prompt = StringField('Add Prompt', [validators.DataRequired('Prompt Required')])
