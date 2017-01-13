@@ -283,7 +283,7 @@ def new_group():
     
     return render_template('main/new_group.html', group=group, form=form)
 
-@main.route('join-group/<uuid>', methods=['GET'])
+@main.route('join/<uuid>', methods=['GET'])
 @login_required
 def join_group(uuid):
     
