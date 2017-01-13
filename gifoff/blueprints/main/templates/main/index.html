@@ -2,6 +2,7 @@
 {% from "macros.html" import challenge_list %}
 {% block title %}Index{% endblock %}
 {% block content %}
+    {% if current_user.is_authenticated %}
     <div class="row">
         <div class="col-sm-12">
             <h1>Home</h1>
@@ -25,5 +26,65 @@
             <h2 class="h5 text-muted">Recently Ended</h2>
             {{ challenge_list(challenges.recent, group=true) }}
         </div>
+    </div>
+    <hr>
+    {% endif %}
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>How it Works</h1>
+        </div>
+    </div>
+    <hr>
+    <div class="d-flex flex-column flex-md-row align-items-stretch justify-content-around">
+
+            <div class="card m-1">
+              <div class="card-header text-white bg-inverse">
+                First:
+              </div>
+              <img class="img-thumbnail img-fluid m-3 mx-auto" src="{{ url_for('static', filename='images/create-group.gif') }}" alt="Create a Group">
+              <div class="card-block">
+                <h4 class="card-title">Create a Private Group</h4>
+                <p class="card-text">Each group you create requires a special invite. Create as many as you like for any number of your friend groups.</p>
+                <a href="{{ url_for('main.new_group') }}" class="btn btn-primary">Create a group</a>
+              </div>
+            </div>
+
+            <div class="card m-1">
+              <div class="card-header text-white bg-inverse">
+                Second:
+              </div>
+              <img class="img-thumbnail img-fluid m-3 mx-auto" src="{{ url_for('static', filename='images/create-challenge.gif') }}" alt="Create a Group">
+              <div class="card-block">
+                <h4 class="card-title">Create your first gif off!</h4>
+                <p class="card-text">On your group's homepage you'll find a link to create a challenge. You can have 
+                    one active at a time per group. 
+                </p>
+              </div>
+                <img class="img-thumbnail img-fluid m-3 mx-auto" src="{{ url_for('static', filename='images/create-prompt.gif') }}" alt="Create a Group">
+              <div class="card-block">
+                <p class="card-text">Just give it a name, a start time & end time, add a couple of prompts 
+                    to spur your friends creativity.
+                </p>
+                
+              </div>
+            </div>
+
+            <div class="card m-1">
+              <div class="card-header text-white bg-inverse">
+                Finally:
+              </div>
+              <img class="img-thumbnail img-fluid m-3 mx-auto" src="{{ url_for('static', filename='images/rate-entry.gif') }}" alt="Create a Group">
+              <div class="card-block">
+                <h4 class="card-title">Judge the Entries</h4>
+                <p class="card-text">As the judge you can click each entry and rate it from 0-5. 
+                    </p>
+                    <p class="card-text">Complete the challenge to calculate the 
+                    winner and make all the gifs available for the group to review. 
+                    </p>
+                    <p class="card-text">Winners are tracked over time and a leaderboard is available for each group. 
+                </p>
+              </div>
+            </div>
+
     </div>
 {% endblock %}

@@ -36,16 +36,18 @@ def check_access(group):
 
 
 @main.route('')
-@login_required
 def index():
-    challenges = Challenge.query.filter(Challenge.group_id.in_([g.id for g in current_user.player_of]))
     
     c = dict()
-    c['judging'] = challenges.filter(Challenge.judge==current_user, Challenge.winner_id==None).order_by(Challenge.utc_end_time)
-    c['active'] = challenges.filter(Challenge.judge!=current_user, Challenge.winner_id==None).order_by(Challenge.utc_end_time)
-    c['recent'] = challenges.filter(Challenge.winner_id!=None).order_by(Challenge.date_modified.desc()).limit(10)
+    if current_user.is_authenticated:
+        challenges = Challenge.query.filter(Challenge.group_id.in_([g.id for g in current_user.player_of]))
+        
+        c['judging'] = challenges.filter(Challenge.judge==current_user, Challenge.winner_id==None).order_by(Challenge.utc_end_time)
+        c['active'] = challenges.filter(Challenge.judge!=current_user, Challenge.winner_id==None).order_by(Challenge.utc_end_time)
+        c['recent'] = challenges.filter(Challenge.winner_id!=None).order_by(Challenge.date_modified.desc()).limit(10)
     
     return render_template('main/index.html', challenges=c)
+
     
 @main.route('<id_slug:group_id>')
 @login_required
