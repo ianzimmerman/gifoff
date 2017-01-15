@@ -86,6 +86,10 @@ def enter(challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
     check_access(challenge.group)
     
+    if current_user == challenge.judge:
+        flash('You cannot enter, you are the judge.', 'danger')
+        return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
+    
     forms = dict()
     for p in challenge.prompts:
         f = ChallengeEntry(prompt_id=p.id, url=p.user_entry(current_user).url, entry_id=p.user_entry(current_user).id)
