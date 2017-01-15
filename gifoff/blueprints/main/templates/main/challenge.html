@@ -37,7 +37,7 @@
     <ul class="list-group">
         {% for p in challenge.prompts %}
             <li id="prompt{{p.id}}" class="list-group-item">
-                {{ p.prompt }}<span class="smallD text-danger ml-1" data-delete="prompt" data-id="{{p.id}}"></span>
+                {{ loop.index }}. {{ p.prompt }}<span class="smallD text-danger ml-1" data-delete="prompt" data-id="{{p.id}}"></span>
             </li>
         {% endfor %}
     </ul>
@@ -63,10 +63,31 @@
     <!-- Entry List for Judge -->
     {% if challenge.complete == false and current_user == challenge.judge and challenge.entry_count > 0 %}
         <h2 class="h4 text-muted">Judge Entries</h2>
+        <div class="d-flex justify-content-end m-2">
+            <span class="m-1"><i class="fa fa-square-o text-warning" aria-hidden="true"></i> No Entry</span>
+            <span class="m-1"><i class="fa fa-square text-info" aria-hidden="true"></i> Un-scored Entry</span>
+            <span class="m-1"><i class="fa fa-check-square text-success" aria-hidden="true"></i> Scored Entry</span>
+        </div>
         <div class="list-group">
             {% for p in challenge.players %}
-            <a class="entryLink list-group-item list-group-item-action" href="#" player_id="{{ p.id }}">
-                Player {{ loop.index }} entries (Score:&nbsp;<span id="score{{p.id}}">{{ challenge.player_score(p) }}</span>)
+            <a class="entryLink list-group-item list-group-item-info list-group-item-action d-flex justify-content-between" href="#" player_id="{{ p.id }}">
+                <div class="flex-column">
+                    <p class="lead m-0">Player {{ loop.index }}</p>
+                    <div class="badge badge-info">Current Score: <span id="score{{p.id}}">{{ challenge.player_score(p) }}</span></div>
+                </div>
+                <div id="status{{p.id}}" class="ml-auto mr-3">
+                    {% set status = challenge.player_status(p) %}
+                    {% for pr in challenge.prompts %}
+                        {% if status[1] >= loop.index %}
+                        <i class="fa fa-check-square text-success" aria-hidden="true"></i>
+                        {% elif status[0] < loop.index %}
+                        <i class="fa fa-square-o text-warning" aria-hidden="true"></i>
+                        {% else %}
+                        <i class="fa fa-square text-info" aria-hidden="true"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <i class="fa fa-chevron-circle-right" aria-hidden="true" style="font-size: xx-large"></i>
             </a>   
             {% endfor %}
         </div>
@@ -78,12 +99,29 @@
     {% elif challenge.complete %}
         <h2 class="h4 text-muted">Submissions</h2>
         <div class="list-group">
-            <a class="entryLink list-group-item list-group-item-success list-group-item-action" href="#" player_id="{{ challenge.winner.id }}">
-                <i class="fa fa-star"></i>&nbsp;{{ challenge.winner.username }} ({{ challenge.high_score[0] }})</a>
-            
+            <a class="entryLink list-group-item list-group-item-success list-group-item-action d-flex justify-content-between" 
+                href="#" player_id="{{ challenge.winner.id }}">
+                <div class="flex-column">
+                    <p class="lead m-0">{{ challenge.winner.username }}</p>
+                    {% if challenge.winner == challenge.author %}
+                    <span class="badge badge-warning"><i class="fa fa-pencil"></i> Author</span>
+                    {% endif %}
+                    <span class="badge badge-success"><i class="fa fa-star"></i> Winner</span>
+                    <span class="badge badge-info">Final Score: {{ challenge.high_score[0] }}</span>
+                </div>
+                <i class="fa fa-chevron-circle-right" aria-hidden="true" style="font-size: xx-large"></i>
+            </a>
             {% for p in challenge.players if p != challenge.winner %}
-                <a class="entryLink list-group-item  list-group-item-action" href="#" player_id="{{ p.id }}">
-                    {{ p.username }} ({{ challenge.player_score(p) }})
+                <a class="entryLink list-group-item list-group-item-info list-group-item-action d-flex justify-content-between" 
+                    href="#" player_id="{{ p.id }}">
+                    <div class="flex-column">
+                        <p class="lead m-0">{{ p.username }}</p>
+                        {% if p == challenge.author %}
+                        <span class="badge badge-warning"><i class="fa fa-pencil"></i> Author</span>
+                        {% endif %}
+                        <span class="badge badge-info">Final Score: {{ challenge.player_score(p) }}</span>
+                    </div>
+                    <i class="fa fa-chevron-circle-right" aria-hidden="true" style="font-size: xx-large"></i>
                 </a>
             {% endfor %}
         </div>
@@ -114,6 +152,9 @@
                     </div>
                 </div>
             </div>
+            <button type="button" class="btn btn-primary w-100" data-dismiss="modal" aria-label="Close">
+                      <i class="fa fa-times"></i> Close
+            </button>
         </div>
     </div>
 {% endblock %}
@@ -165,7 +206,7 @@
                   rating: 0,
                   onInit: function (rating, rateYoInstance) {
                       var p_rating = parseFloat(rateYoInstance.node.attributes.rating.value);
-                      total_score += p_rating;
+                      window.total_score += p_rating;
                       rateYoInstance.rating(p_rating);
                   },
                   onSet: function (rating, rateYoInstance) {
@@ -173,8 +214,11 @@
                       var p_rating = parseFloat(rateYoInstance.node.attributes.rating.value);
                                             
                       if (p_rating != rating){
-                          total_score += rating - p_rating;
-                          $.get(Flask.url_for('main.score', {'challenge_id':{{ challenge.id }}, 'entry_id': entry_id, 'score':rating }), function (data){
+                          window.total_score += rating - p_rating;
+                          $('#score'+player_id).html(window.total_score.toFixed(1));
+                          
+                          $.get(Flask.url_for('main.score', {'challenge_id':{{ challenge.id }}, 'entry_id': entry_id, 'score':rating }), 
+                          function (data){
                               //console.log("Rating for " + entry_id + " is set to " + rating);
                               //console.log(data);
                           });
@@ -183,12 +227,6 @@
                   
               });
           });
-          
-          $('#entry').on('hidden.bs.modal', function (e) {
-              //console.log(player_id);
-              $('#score'+player_id).html(window.total_score.toFixed(1));
-          })
-          
         });
     });
 </script>

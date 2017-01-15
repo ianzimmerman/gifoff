@@ -7,30 +7,47 @@
             <h1 class="display-4" style="margin-bottom: 0">{{ challenge.name }}</h1>
             <p class="text-muted" style="margin-top: 0; margin-bottom: 0">created by {{ challenge.author.username }}</p>
             <p class="text-muted" style="margin-top: 0">judged by {{ challenge.judge.username }}</p>
+            {% if challenge.description %}
             <blockquote class="blockquote">
                 {{ challenge.description }}
             </blockquote>
-            <h2>Your Entries</h2>
-            <dl>
-            {% for p in challenge.prompts %}
-                <dt>
-                    {{ p.prompt }}<br>
-                    {% if not p.user_entry(current_user).score %}
-                        <form class="form-group" action="" method="post" id="form{{p.id}}">
-                            {{ forms[p.id].hidden_tag() }}
-                            <div class="input-group">
-                              {{ forms[p.id].url(class="form-control", type="url") }}
-                              <span class="input-group-btn">
-                                <button id="button{{p.id}}" class="btn btn-primary" type="submit">Save</button>
-                              </span>
-                            </div>
-                            <div id="feedback{{p.id}}" class="form-control-feedback"></div>
-                        </form>
-                    {% endif %}
-                </dt>
-                <dd><img src="{{ p.user_entry(current_user).url or '' }}" id="img{{p.id}}"></dd>
-            {% endfor %}
-            </dl>
+            {% endif %}
+            <div class="list-group">
+                {% for p in challenge.prompts %}
+                <div class="list-group-item flex-column align-items-start">
+                    <h2 class="h4 mb-3">{{ loop.index }}. {{ p.prompt }}</h2>
+                    <div class="w-100">
+                        {% if not p.user_entry(current_user).score %}
+                            <form class="form-group" action="" method="post" id="form{{p.id}}">
+                                {{ forms[p.id].hidden_tag() }}
+                                <div class="input-group">
+                                  {{ forms[p.id].url(class="form-control", type="url", placeholder="e.g. http://somewhere.edu/funny.gif") }}
+                                  <span class="input-group-btn">
+                                    <button id="button{{p.id}}" class="btn btn-primary" type="submit">Save</button>
+                                  </span>
+                                </div>
+                                <div id="feedback{{p.id}}" class="form-control-feedback"></div>
+                            </form>
+                        {% endif %}
+                        <span id="url{{p.id}}">
+                        {% if p.user_entry(current_user).url %}
+                            <img class="img-responsive mw-100"  src="{{ p.user_entry(current_user).url }}">
+                        {% else %}
+                            <p class="alert alert-info">
+                                Copy and paste a gif's url to enter.<br>
+                                Hint: on mobile, press and hold an image to get its url<br>
+                                <a class="btn btn-sm btn-primary mt-2" href="http://giphy.com/" 
+                                    target="_blank">
+                                        Find gifs at giphy.com <i class="fa fa-external-link"></i>
+                                </a>
+                            </p>
+                        {% endif %}
+                        </span>
+                    </div>
+                    {{ '<hr>'|safe if not loop.last }}
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -56,7 +73,7 @@
                     button.attr('class', 'btn btn-success');
                     button.text('Saved');
                     $("#feedback"+data.prompt_id).text('');
-                    $("#img"+data.prompt_id).attr('src', data.url);
+                    $("#url"+data.prompt_id).html('<img class="img-responsive mw-100" src="'+ data.url +'">');
                 }
                 else{
                     form.removeClass("has-success");

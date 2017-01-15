@@ -5,3 +5,34 @@ h1, h2, h3, h4, h5 {
 body {
     padding-bottom: 10px;
 }
+
+// Extra small devices (portrait phones, less than 576px)
+@media (max-width: 575px) { 
+    h1, h2, h3, h4, h5 {
+        font-size: 11px
+    }
+}
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) and (max-width: 767px) {
+    h1, h2, h3, h4, h5 {
+        font-size: small
+    }
+}
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) and (max-width: 991px) {
+    h1, h2, h3, h4, h5 {
+        font-size: small
+    }
+}
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) and (max-width: 1199px) {
+    
+}
+
+// Extra large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {
+    
+}

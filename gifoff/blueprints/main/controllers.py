@@ -69,6 +69,9 @@ def challenge(group_id, challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
     check_access(challenge.group)
     
+    if challenge.active and current_user not in [challenge.author, challenge.judge]:
+        return redirect(url_for('main.enter', challenge_id=challenge))
+    
     form = PromptForm()
     if form.validate_on_submit():
         p = Prompt(challenge=challenge, prompt=form.prompt.data)
@@ -76,6 +79,29 @@ def challenge(group_id, challenge_id):
             return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
     
     return render_template('main/challenge.html', challenge=challenge, form=form)
+
+@main.route('<id_slug:challenge_id>/enter', methods=['GET', 'POST'])
+@login_required
+def enter(challenge_id):
+    challenge = Challenge.query.get_or_404(challenge_id)
+    check_access(challenge.group)
+    
+    forms = dict()
+    for p in challenge.prompts:
+        f = ChallengeEntry(prompt_id=p.id, url=p.user_entry(current_user).url, entry_id=p.user_entry(current_user).id)
+        if f.validate_on_submit():
+            entry = Entry.query.get(int(f.entry_id.data))
+            entry.url = f.url.data
+            if db_commit():
+                return jsonify({'response': 'OK', 'prompt_id': f.prompt_id.data, 'url': entry.url }), 200
+            else:
+                return jsonify({'response': 'ERROR', 'prompt_id': f.prompt_id.data}), 304
+        elif f.errors:
+            return jsonify({'response': 'ERROR', 'errors':f.errors, 'prompt_id': f.prompt_id.data}), 200
+        
+        forms[p.id] = f
+    
+    return render_template('main/enter.html', challenge=challenge, forms=forms)
     
 @main.route('<id_slug:challenge_id>/entry/<int:user_id>', methods=['GET', 'POST'])
 @login_required
@@ -153,29 +179,6 @@ def delete_challenge(challenge_id):
         flash('No Access.', 'danger')
     
     return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
-
-@main.route('<id_slug:challenge_id>/enter', methods=['GET', 'POST'])
-@login_required
-def enter(challenge_id):
-    challenge = Challenge.query.get_or_404(challenge_id)
-    check_access(challenge.group)
-    
-    forms = dict()
-    for p in challenge.prompts:
-        f = ChallengeEntry(prompt_id=p.id, url=p.user_entry(current_user).url, entry_id=p.user_entry(current_user).id)
-        if f.validate_on_submit():
-            entry = Entry.query.get(int(f.entry_id.data))
-            entry.url = f.url.data
-            if db_commit():
-                return jsonify({'response': 'OK', 'prompt_id': f.prompt_id.data, 'url': entry.url }), 200
-            else:
-                return jsonify({'response': 'ERROR', 'prompt_id': f.prompt_id.data}), 304
-        elif f.errors:
-            return jsonify({'response': 'ERROR', 'errors':f.errors, 'prompt_id': f.prompt_id.data}), 200
-        
-        forms[p.id] = f
-    
-    return render_template('main/enter.html', challenge=challenge, forms=forms)
     
 @main.route('<id_slug:group_id>/new-challenge', methods=['GET', 'POST'])
 @login_required

@@ -94,6 +94,10 @@ class User(Base, UserMixin):
     def group_wins(self, group):
         return select([func.count(Challenge.winner_id)]).where(Challenge.winner_id==self.id).where(Challenge.group_id==group.id)
     
+    @hybrid_method
+    def group_avg_score(self, group):
+        return round(self.group_score(group)/(self.group_entries(group) or 1), 1)
+    
     def __repr__(self):
         return '{}'.format(self.email)
 
@@ -112,7 +116,7 @@ class Group(Base):
     
     @hybrid_property
     def prompts(self):
-        return [p.id for c in self.challenges for p in c.prompts]
+        return [p.id for c in self.challenges for p in c.prompts if c.complete==True]
     
     @hybrid_property
     def active_count(self):
@@ -137,7 +141,12 @@ class Group(Base):
     
     @hybrid_property
     def leaders(self):
-        this = db.session.query(User).filter(User.id.in_([p.id for p in self.players])).order_by(desc(User.group_wins(self))).order_by(desc(User.group_score(self))).limit(3)
+        this = db.session.query(User)\
+            .filter(User.id.in_([p.id for p in self.players]))\
+            .filter()\
+            .order_by(desc(User.group_wins(self)))\
+            .order_by(desc(User.group_score(self))).limit(3)
+        
         return this
           
     def __repr__(self):
@@ -262,6 +271,13 @@ class Challenge(Base):
     @hybrid_method
     def player_score(self, p):
         return round(db.session.query(func.sum(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar() or 0,1)
+    
+    @hybrid_method
+    def player_status(self, p):
+        entries = db.session.query(func.count(Entry.url)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar() or 0
+        scored = db.session.query(func.count(Entry.score)).filter(Entry.challenge_id==self.id, Entry.player==p).scalar() or 0
+        
+        return (entries, scored)
     
     def __repr__(self):
         return '{}'.format(self.name)
