@@ -202,12 +202,15 @@ def new_challenge(group_id):
         'e': a.replace(hours=+4, minutes=+10).to(current_app.config['DEFAULT_TIMEZONE']).naive
     }
     
-    form = ChallengeForm(utc_start_time=date_range['s'], utc_end_time=date_range['e'], judge_id=judge_id)
+    form = ChallengeForm(date_range="{} - {}".format(date_range['s'], date_range['e']), judge_id=judge_id)
     form.judge_id.choices = [(p.id, p.username) for p in group.players]
     
+    # print(request.form)
+    
     if form.validate_on_submit() and group.active_count == 0:
-        st = arrow.get(form.utc_start_time.data)
-        et = arrow.get(form.utc_end_time.data)
+        date_range = form.date_range.data.split(" - ")
+        st = arrow.get(date_range[0])
+        et = arrow.get(date_range[1])
         
         c = Challenge(group=group,
                         author=current_user, 
@@ -217,6 +220,9 @@ def new_challenge(group_id):
                         utc_start_time=arrow.get(st.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime, 
                         utc_end_time=arrow.get(et.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime
                     )
+        
+        ps = [Prompt(challenge=c, prompt=p) for p in request.form.getlist('prompts') if p != '']
+        db.session.add_all(ps)
         
         if db_commit():            
             try:
@@ -249,20 +255,32 @@ def edit_challenge(challenge_id):
     challenge = Challenge.query.get_or_404(challenge_id)
     if current_user not in [challenge.author, challenge.group.owner]:
         abort(401)
+        
+    a = arrow.utcnow()
+    
+    min_time = a.to(current_app.config['DEFAULT_TIMEZONE']).naive    
     
     if request.method != 'POST':
         challenge.utc_start_time = challenge.start_time.to(current_app.config['DEFAULT_TIMEZONE']).datetime
         challenge.utc_end_time = challenge.end_time.to(current_app.config['DEFAULT_TIMEZONE']).datetime
     
-    form = ChallengeForm(obj=challenge)
+    c_obj = dict(
+                judge_id=challenge.judge_id,
+                name=challenge.name,
+                description=challenge.description,
+                date_range="{} - {}".format(challenge.utc_start_time, challenge.utc_end_time)
+                )
+    
+    form = ChallengeForm(**c_obj)
     form.judge_id.choices = [(p.id, p.username) for p in challenge.group.players]
     
     if form.validate_on_submit():
-        st = arrow.get(form.utc_start_time.data)
-        et = arrow.get(form.utc_end_time.data)
+        date_range = form.date_range.data.split(" - ")
+        st = arrow.get(date_range[0])
+        et = arrow.get(date_range[1])
     
         challenge.name = form.name.data
-        challenge.description = form.description.data 
+        challenge.description = form.description.data
         challenge.judge_id = int(form.judge_id.data)
         challenge.utc_start_time=arrow.get(st.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime
         challenge.utc_end_time=arrow.get(et.naive, current_app.config['DEFAULT_TIMEZONE']).to('utc').datetime
@@ -270,7 +288,7 @@ def edit_challenge(challenge_id):
         if db_commit():
             return redirect(url_for('main.challenge', group_id=challenge.group, challenge_id=challenge))
     
-    return render_template('main/edit_challenge.html', challenge=challenge, form=form)
+    return render_template('main/edit_challenge.html', challenge=challenge, form=form, min_time=min_time)
 
 @main.route('new-group', methods=['GET', 'POST'])
 @login_required

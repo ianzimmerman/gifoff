@@ -43,8 +43,8 @@ class ChallengeForm(Form):
     name = StringField('Name', [validators.DataRequired('Name Required')])
     description = TextAreaField('Description', [validators.Optional()])
     judge_id = SelectField('Judge', [validators.DataRequired('Please choose a judge.')], coerce=int, choices=[])
-    utc_start_time = DateTimeField('Start Time', [validators.DataRequired('Please Choose Start Time')], format='%Y-%m-%d %H:%M')
-    utc_end_time = DateTimeField('End Time', [validators.DataRequired('Please Choose End Time')], format='%Y-%m-%d %H:%M')
+    date_range = StringField('Active Times', [validators.DataRequired('Please Choose a Date Range')])
+    # utc_end_time = DateTimeField('End Time', [validators.DataRequired('Please Choose End Time')], format='%Y-%m-%d %H:%M')
     
 
 class ChallengeEntry(Form):

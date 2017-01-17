@@ -12,14 +12,19 @@
 {% block content %}
     <h1>Create New Challenge</h1>
     <p class="alert alert-info">Please note all times are {{ config.DEFAULT_TIMEZONE }}</p>
-    <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
+    <form id="cform" class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
         {{ form.hidden_tag() }}
         {{ render_field(form.name) }}
         {{ render_field(form.description) }}
         {{ render_field(form.judge_id) }}
-        {{ render_field(form.utc_start_time) }}
-        {{ render_field(form.utc_end_time) }}
-        <br><button class="btn btn-primary" type="submit">Create</button>
+        {{ render_field(form.date_range) }}
+        {# { render_field(form.utc_end_time) } #}
+        <div id="prompts">
+            <h2 class="h4 text-faded">Challenge Prompts</h2>
+        </div>
+        <button class="btn btn-sm btn-success add_form mb-2" type="button"><i class="fa fa-plus"></i> Add Prompt</button>
+        <hr>
+        <button class="btn btn-primary" type="submit">Save Challenge</button>
     </form>
     
 {% endblock %}
@@ -30,15 +35,34 @@
 <script type="text/javascript">
     $(document).ready(function() {
 //         $("#judge").select2();
-        $('input[name="utc_start_time"]').daterangepicker({
-            "singleDatePicker": true,
+        $('input[name="date_range"]').daterangepicker({
+            //"singleDatePicker": true,
             "timePicker": true,
             "timePicker24Hour": true,
-            "timePickerIncrement": 15,
+            "timePickerIncrement": 10,
             "locale": {
                 "format": "YYYY-MM-DD HH:mm"
-            }       
+            },
+            "minDate": "{{ date_range.s }}"     
         });
+        
+        $('.add_form').click(function(){
+            var pform = '<div class="input-group mb-2">\n';
+                pform += '  <input type="text" name="prompts" class="form-control">\n';
+                pform += '  <span class="input-group-btn">\n';
+                pform += '    <div class="btn-group" role="group">\n';
+                pform += '      <button class="btn btn-danger delete_form" type="button"><i class="fa fa-trash"></i></button>\n';
+                pform += '    </div>\n';
+                pform += '  </span>\n';
+                pform += '</div>\n';
+        
+            $('#prompts').append(pform);
+        });
+        
+        $(document).on("click", ".delete_form",function() {
+            $(this).parent().parent().parent().remove();
+        });
+/*
         $('input[name="utc_end_time"]').daterangepicker({
             "singleDatePicker": true,
             "timePicker": true,
@@ -48,6 +72,7 @@
                 "format": "YYYY-MM-DD HH:mm"
             }
         });
+*/
     });
 </script>
 {% endblock %}

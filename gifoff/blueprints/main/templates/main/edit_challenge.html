@@ -17,8 +17,8 @@
         {{ render_field(form.name) }}
         {{ render_field(form.description) }}
         {{ render_field(form.judge_id) }}
-        {{ render_field(form.utc_start_time) }}
-        {{ render_field(form.utc_end_time) }}
+        {{ render_field(form.date_range) }}
+        {# { render_field(form.utc_end_time) } #}
         <br><button class="btn btn-primary" type="submit">Edit</button>
     </form>
     
@@ -30,15 +30,17 @@
 <script type="text/javascript">
     $(document).ready(function() {
 //         $("#judge").select2();
-        $('input[name="utc_start_time"]').daterangepicker({
-            "singleDatePicker": true,
+        $('input[name="date_range"]').daterangepicker({
+            //"singleDatePicker": true,
             "timePicker": true,
             "timePicker24Hour": true,
-            "timePickerIncrement": 15,
+            "timePickerIncrement": 10,
             "locale": {
                 "format": "YYYY-MM-DD HH:mm"
-            }       
+            },
+            "minDate": "{{ min_time }}"     
         });
+/*
         $('input[name="utc_end_time"]').daterangepicker({
             "singleDatePicker": true,
             "timePicker": true,
@@ -48,6 +50,7 @@
                 "format": "YYYY-MM-DD HH:mm"
             }
         });
+*/
     });
 </script>
 {% endblock %}
