@@ -7,7 +7,7 @@
 {% block breadcrumb %}{{ breadcrumbs(end=group.name) }}{% endblock %}
 {% block content %}
     <div class="row ml-0 mr-0">
-        <div class="col-12">
+        <div class="col-12 p-0 p-md-1">
             <h1 class="display-4" style="margin-bottom: 0">{{ group.name }}</h1>
             <p class="text-muted" style="margin-top: 0">owned by {{ group.owner.username }}</p>
             {% if group.description %}
@@ -55,7 +55,7 @@
         </div>
     </div>
     <div class="row ml-0 mr-0">
-        <div class="col-md">
+            <div class="col-md p-0 p-md-1">
             <h2 class="h4 text-muted">Active Challenge</h2>
             {{ challenge_list(challenges.active) }}
             
@@ -69,15 +69,15 @@
                         <i class="fa fa-trophy mr-3" style="color: {{ color[loop.index-1] }}; font-size: x-large"></i> 
                         <p class="lead mb-0">{{ p.username }}</p>
                         <span id="badges" class="ml-auto">
-                            <span class="badge badge-success">Wins: {{ p.group_wins(group) }}</span>
-                            <span class="badge badge-info">Avg. Score:  {{ p.group_avg_score(group) }}</span>
+                            <span class="badge badge-success">{{ p.group_wins(group) }} Wins</span>
+                            <span class="badge badge-info">{{ p.group_avg_score(group) }} Average</span>
                         </span>
                     </span>
                 {% endfor %}
             </div>
             <!-- end leaders -->
         </div>
-        <div class="col-md">
+        <div class="col-md p-0 p-md-1">
             <h2 class="h4 text-muted">Completed Challenges</h2>
             {{ challenge_list(challenges.recent) }}
         </div>

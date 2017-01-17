@@ -15,13 +15,13 @@
     </div>
     <hr>
     <div class="row ml-0 mr-0">
-        <div class="col-md">
+        <div class="col-md  p-0 p-md-1">
             <h2 class="h5 text-muted">Active Challenges</h2>
             {{ challenge_list(challenges.active, group=true) }}
             <h2 class="h5 text-muted">Challenges to Judge</h2>
             {{ challenge_list(challenges.judging, group=true) }}
         </div>
-        <div class="col-md">
+        <div class="col-md  p-0 p-md-1">
             <h2 class="h5 text-muted">Recently Ended</h2>
             {{ challenge_list(challenges.recent, group=true) }}
         </div>

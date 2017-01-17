@@ -34,15 +34,15 @@ def unique_name(model):
 
 
 class GroupForm(Form):
-    name = StringField('Name', [validators.DataRequired('Name Required'), unique_name(Group)])
-    description = TextAreaField('Description', [validators.Optional()])
+    name = StringField('Name', [validators.Length(min=1, max=30, message="Length: 1-30 characters"), unique_name(Group)])
+    description = TextAreaField('Description', [validators.Length(max=140, message="Max Length is 140 characters"), validators.Optional()])
 
 class PromptForm(Form):
-    prompt = StringField('Add Prompt', [validators.DataRequired('Prompt Required')])
+    prompt = StringField('Add Prompt', [validators.Length(min=1, max=140, message="Length: 1-140 characters")])
 
 class ChallengeForm(Form):
-    name = StringField('Name', [validators.DataRequired('Name Required')])
-    description = TextAreaField('Description', [validators.Optional()])
+    name = StringField('Name', [validators.Length(min=1, max=30, message="Length: 1-30 characters")])
+    description = TextAreaField('Description', [validators.Length(max=140, message="Max Length is 140 characters"), validators.Optional()])
     judge_id = SelectField('Judge', [validators.DataRequired('Please choose a judge.')], coerce=int, choices=[])
     date_range = StringField('Active Times (US/PACIFIC)', [validators.DataRequired('Please Choose a Date Range')])
     # utc_end_time = DateTimeField('End Time', [validators.DataRequired('Please Choose End Time')], format='%Y-%m-%d %H:%M')

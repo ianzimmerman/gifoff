@@ -1,7 +1,7 @@
 from flask_security import Security, SQLAlchemyUserDatastore, utils
 from flask_security.forms import RegisterForm, ConfirmRegisterForm
 from sqlalchemy import func
-from wtforms import StringField
+from wtforms import StringField, validators
 from wtforms.validators import DataRequired, Regexp
 
 from .models import db, db_commit, get_count, User, Role
@@ -13,7 +13,7 @@ def unique_name(self, field):
     if u:
         raise validators.ValidationError('Name Taken.')
 
-ext_reg = ('Username', [DataRequired('Username Required.'), unique_name, Regexp(r'^[\w.@+-]+$', message="No special characters.")])
+ext_reg = ('Username', [validators.Length(min=3, max=12, message="Length is 3-12 characters"), unique_name, Regexp(r'^[\w.@+-]+$', message="No special characters.")])
 
 class ExtendedRegisterForm(RegisterForm):
     username = StringField(*ext_reg)
