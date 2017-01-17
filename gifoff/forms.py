@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from flask import current_app
 from flask_wtf import Form
 
 import requests
@@ -43,7 +44,7 @@ class ChallengeForm(Form):
     name = StringField('Name', [validators.DataRequired('Name Required')])
     description = TextAreaField('Description', [validators.Optional()])
     judge_id = SelectField('Judge', [validators.DataRequired('Please choose a judge.')], coerce=int, choices=[])
-    date_range = StringField('Active Times', [validators.DataRequired('Please Choose a Date Range')])
+    date_range = StringField('Active Times (US/PACIFIC)', [validators.DataRequired('Please Choose a Date Range')])
     # utc_end_time = DateTimeField('End Time', [validators.DataRequired('Please Choose End Time')], format='%Y-%m-%d %H:%M')
     
 

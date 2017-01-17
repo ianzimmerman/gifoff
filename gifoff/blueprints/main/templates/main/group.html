@@ -4,9 +4,9 @@
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" />
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumbs(group=group) }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(end=group.name) }}{% endblock %}
 {% block content %}
-    <div class="row">
+    <div class="row ml-0 mr-0">
         <div class="col-12">
             <h1 class="display-4" style="margin-bottom: 0">{{ group.name }}</h1>
             <p class="text-muted" style="margin-top: 0">owned by {{ group.owner.username }}</p>
@@ -54,7 +54,7 @@
             <hr>
         </div>
     </div>
-    <div class="row">
+    <div class="row ml-0 mr-0">
         <div class="col-md">
             <h2 class="h4 text-muted">Active Challenge</h2>
             {{ challenge_list(challenges.active) }}

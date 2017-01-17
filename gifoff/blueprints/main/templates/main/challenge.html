@@ -12,7 +12,7 @@
     }
 </style>
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge) }}{% endblock %}
+{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, end='Challenge Details') }}{% endblock %}
 {% block content %}
     <div class="mt-2 pl-0 pr-0 d-flex justify-content-between">
         {{ status_tag(challenge) }}

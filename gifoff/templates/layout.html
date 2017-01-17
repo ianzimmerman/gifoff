@@ -46,11 +46,14 @@
         ] -%}
     <div class="container pl-0 pr-0">
         <nav class="navbar navbar-toggleable-sm navbar-inverse bg-inverse rounded-bottom">
-          <button class="navbar-toggler navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
+          <a class="navbar-brand mt-2 mt-md-0" href="{{ url_for('main.index') }}">
+              <img class="d-inline-block align-top" src="{{ url_for('static', filename='icos/favicon-32x32.png') }}"> 
+                <span class="ml-1">Gif Off</span>
+          </a>
           <div class="collapse navbar-collapse" id="mainNav">
-            <a class="navbar-brand mt-2 mt-md-0" href="{{ url_for('main.index') }}">{{ config.APP_NAME }}</a>
             <ul class="navbar-nav d-flex justify-content-start">
                 {%- for endpoint, text, children in navigation_bar -%}
                     <li class="nav-item {{ 'active' if request.endpoint == endpoint }}">
@@ -76,29 +79,29 @@
                 {% block navigation %}
                 {% endblock %}
                 {% if current_user.is_authenticated %}
-                    <li class="nav-item ml-auto">
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('security.logout') }}">Sign out</a>
                     </li>
                 {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('security.register') }}">Register</a>
                     </li>
-                    <li  class="nav-item ml-auto">
+                    <li  class="nav-item">
                         <a class="nav-link" href="{{ url_for('security.login') }}">Sign in</a>
                     </li>
                 {% endif %}
             </ul>
           </div>
         </nav>
-        <div class="row">
-            <div class="col-12">
+        <div class="row m-0 p-0 mr-1 ml-1 ml-md-0 mr-md-0">
+            <div class="col-12 m-0 p-0">
             {% block breadcrumb %}{% endblock %}
             </div>
         </div>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="row">
-                    <div class="col-sm" id="alert-messages">
+                <div class="row m-0 p-0 mr-1 ml-1 ml-md-0 mr-md-0">
+                    <div class="col-12 m-0 p-0" id="alert-messages">
                         {% for c, m in messages %}
                             <div class="mt-1 alert alert-{{ c }}" style="z-index: 999">
                                 <i class="fa fa-exclamation-triangle"></i> {{ m|safe }}
