@@ -7,7 +7,7 @@
 		<a href="{{ url_for('main.group', group_id=group) }}">{{group.name}}</a>
 	</li>
     	{%- if challenge is not none -%}
-        <li class="breadcrumb-item hidden-sm-down">
+        <li class="breadcrumb-item">
     	    <a href="{{ url_for('main.challenge', group_id=group, challenge_id=challenge) }}">{{ challenge.name }}</a>
         </li>
         {%- endif -%}
@@ -18,7 +18,7 @@
     </li>
 -->
     {%- for k, v in kwargs.items() -%}
-    	<li class="breadcrumb-item hidden-sm-down">{{ v }}</li>
+    	<li class="breadcrumb-item">{{ v }}</li>
     {%- endfor -%}
   </ol>
 </nav>
