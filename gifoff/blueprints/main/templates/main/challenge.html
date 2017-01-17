@@ -103,11 +103,11 @@
                 href="#" player_id="{{ challenge.winner.id }}">
                 <div class="flex-column">
                     <p class="lead m-0">{{ challenge.winner.username }}</p>
+                    <span class="badge badge-info">Final Score: {{ challenge.high_score[0] }}</span>
                     {% if challenge.winner == challenge.author %}
                     <span class="badge badge-warning"><i class="fa fa-pencil"></i> Author</span>
                     {% endif %}
                     <span class="badge badge-success"><i class="fa fa-star"></i> Winner</span>
-                    <span class="badge badge-info">Final Score: {{ challenge.high_score[0] }}</span>
                 </div>
                 <i class="fa fa-chevron-circle-right" aria-hidden="true" style="font-size: xx-large"></i>
             </a>
@@ -116,10 +116,10 @@
                     href="#" player_id="{{ p.id }}">
                     <div class="flex-column">
                         <p class="lead m-0">{{ p.username }}</p>
+                        <span class="badge badge-info">Final Score: {{ challenge.player_score(p) }}</span>
                         {% if p == challenge.author %}
                         <span class="badge badge-warning"><i class="fa fa-pencil"></i> Author</span>
                         {% endif %}
-                        <span class="badge badge-info">Final Score: {{ challenge.player_score(p) }}</span>
                     </div>
                     <i class="fa fa-chevron-circle-right" aria-hidden="true" style="font-size: xx-large"></i>
                 </a>
