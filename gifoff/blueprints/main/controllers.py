@@ -14,6 +14,7 @@ from .helpers import IDSlugConverter, add_app_url_map_converter
 from ...models import db, db_commit, User, Group, Challenge, Entry, Prompt
 from ...forms import GroupForm, ChallengeEntry, ChallengeForm, PromptForm
 from ...mail import send_async_email
+from ...cache import cache, clear_keys
 
 Blueprint.add_app_url_map_converter = add_app_url_map_converter
 
@@ -143,6 +144,9 @@ def close(challenge_id):
         if winner:
             challenge.winner = winner
             if db_commit():
+                clear_keys(cache, ['leaders{}'.format(challenge.group.id),
+                                   'recent{}'.format(challenge.group.id)]
+                          )
                 try:
                     msg = Message("{}: Challenge '{}' completed! Come see the winner".format(current_app.config['APP_NAME'], challenge.name),
                                     sender=(current_app.config['APP_NAME'], current_app.config['MAIL_DEFAULT_SENDER']),

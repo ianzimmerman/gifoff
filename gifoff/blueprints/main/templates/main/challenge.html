@@ -97,6 +97,7 @@
     
     <!-- Entry list for players -->
     {% elif challenge.complete %}
+        {%- cache 60*60*24*7, 'entries'+challenge.id|string %}
         <h2 class="h4 text-muted">Submissions</h2>
         <div class="list-group">
             <a class="entryLink list-group-item list-group-item-success list-group-item-action d-flex justify-content-between" 
@@ -125,6 +126,7 @@
                 </a>
             {% endfor %}
         </div>
+        {% endcache %}
     {% endif %}
     
     <!-- Entry Link -->
@@ -146,10 +148,8 @@
                       <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <div class="" id="entryResults"></div>
-                    </div>
+                <div class="modal-body p-0">
+                    <div class="" id="entryResults"></div>
                 </div>
             </div>
             <button type="button" class="btn btn-primary w-100" data-dismiss="modal" aria-label="Close">
@@ -215,6 +215,7 @@
                                             
                       if (p_rating != rating){
                           window.total_score += rating - p_rating;
+                          rateYoInstance.node.attributes.rating.value = rating;
                           $('#score'+player_id).html(window.total_score.toFixed(1));
                           
                           $.get(Flask.url_for('main.score', {'challenge_id':{{ challenge.id }}, 'entry_id': entry_id, 'score':rating }), 

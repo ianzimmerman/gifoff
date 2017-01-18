@@ -1,39 +1,43 @@
 {% if challenge.complete or current_user == challenge.judge or current_user == challenge.author %}
+<div class="list-group-flush">
     {% if challenge.complete %}
-    <div class="row">
-        <div class="col-12 text-left" style="padding: 0">
-            <p class="lead">
+        {%- cache 60*60*24*7, 'entry'+challenge.id|string+user.id|string %}
+            <div class="list-group-item flex-column align-items-start">
+                <p class="lead mb-0">{{user.username}}'s entries</p>
                 {% if challenge.winner == user %}
-                <i class="fa fa-trophy"></i> 
+                    <span class="badge badge-success"><i class="fa fa-star"></i> Winner</span>
                 {% endif %} 
-                {{user.username}}'s entries
-            </p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm text-left" style="padding: 0">
-            <small>
-                User Score: {{ challenge.player_score(user) }}         
-            </small>
-        </div>
-        <div class="col-sm text-left" style="padding: 0"><small>Contest Best: {{ challenge.high_score[0] }}</small></div>
-    </div>
-    {% endif %}
-    {% for p in challenge.prompts %}
-    <hr>
-    <div class="row">
-        <dl>
-            <dt>
-                {{ p.prompt }} {% if challenge.complete and p.user_entry(user).score == p.high_score %}<i class="fa fa-star"></i>{% endif %}<br>
-                {% if challenge.complete %}
-                    <div class="float-left"><small>Score: {{ p.user_entry(user).score }}</small></div>
-                    <div class="float-right"><small>Best: {{ p.high_score }}</small></div>
-                {% elif p.user_entry(user).url %}
-                    <div class="rateYo" rating="{{ p.user_entry(user).score or 0 }}" entry_id="{{p.user_entry(user).id}}" style="margin: 10px"></div>
+            </div>
+            <div class="list-group-item flex-row justify-content-between">
+                <small>User Score: {{ challenge.player_score(user) }}</small>
+                <small>Contest Best: {{ challenge.high_score[0] }}</small>
+            </div>
+            {% for p in challenge.prompts %}
+                <div class="flex-column list-group-item align-items-start">
+                    <p class="lead mb-0">
+                        {{ p.prompt }}
+                    </p>
+                    <div class="d-flex w-100 justify-content-between mb-1">
+                        <small>
+                            Score: {{ p.user_entry(user).score }}
+                            {% if p.user_entry(user).score == p.high_score %}<i class="fa fa-star"></i>{% endif %}
+                        </small>
+                        <small>Best: {{ p.high_score }}</small>
+                    </div>
+                    <img src="{{ p.user_entry(user).url or '' }}" class="img-responsive rounded mw-100">
+                </div>
+            {% endfor %}
+        {% endcache %}
+    {% else %}
+        {% for p in challenge.prompts %}
+            <div class="flex-column list-group-item">
+                <p class="lead mb-0 mr-auto">{{ p.prompt }}</p> 
+                <img src="{{ p.user_entry(user).url or '' }}" class="img-responsive rounded mw-100">                     
+                {% if p.user_entry(user).url %}
+                    <div class="rateYo mt-2 mx-auto" rating="{{ p.user_entry(user).score or 0 }}" entry_id="{{p.user_entry(user).id}}"></div>
                 {% endif %}
-            </dt>
-            <dd><img src="{{ p.user_entry(user).url or '' }}" class="rounded" style="max-width: 100%"></dd>
-        </dl>
-    </div>
-    {% endfor %}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
 {% endif %}

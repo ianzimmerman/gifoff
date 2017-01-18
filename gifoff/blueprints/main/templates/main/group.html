@@ -60,6 +60,7 @@
             {{ challenge_list(challenges.active) }}
             
             <!-- leaders -->
+            {%- cache 60*60*24*7, 'leaders'+group.id|string %}
             <h2 class="h4 text-muted">Leaders</h2>
             <div class="list-group">
                 {% set bg_color = ['lightyellow', 'whitesmoke', 'antiquewhite'] %}
@@ -75,19 +76,22 @@
                     </span>
                 {% endfor %}
             </div>
+            {% endcache -%}
             <!-- end leaders -->
         </div>
+        {%- cache 60*60*24*7, 'recent'+group.id|string %}
         <div class="col-md p-0 p-md-1">
             <h2 class="h4 text-muted">Completed Challenges</h2>
             {{ challenge_list(challenges.recent) }}
         </div>
+        {% endcache -%}
     </div>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-            
+        {% if current_user == group.owner %}
         $authSelect = $("#authors");
         $authSelect.select2({
             placeholder: "Authors List"
@@ -98,6 +102,7 @@
             console.log($authForm);
             $.post(Flask.url_for('main.update_authors', { 'group_id':{{ group.id }} }), $authForm);
         });
+        {% endif %}
         
         $(".copy-button").click(function(e) {
             $(".copy-text").select();
