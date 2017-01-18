@@ -412,4 +412,11 @@ def delete(model, model_id):
             return redirect(url_for('main.index'))
     else:
         abort(401)
+
+@main.route('clear-cache')
+@roles_required(['ADMIN'])
+def clear_cache():
+	cache.clear()
+	flash('Site cache cleared','success')
+	return redirect(url_for('main.index'))
         
