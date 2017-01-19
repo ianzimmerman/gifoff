@@ -8,7 +8,7 @@
     <h1>Create New Group</h1>
     <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
         {{ form.hidden_tag() }}
-        {{ render_field(form.name) }}
+        {{ render_field(form.name, maxlength=30) }}
         {{ render_field(form.description) }}
         <br><button class="btn btn-primary" type="submit">Create Group</button>
     </form>
