@@ -65,14 +65,14 @@
         <h2 class="h4 text-muted">Judge Entries</h2>
         <div class="d-flex justify-content-end m-2">
             <span class="m-1"><i class="fa fa-square-o text-warning" aria-hidden="true"></i> No Entry</span>
-            <span class="m-1"><i class="fa fa-square text-info" aria-hidden="true"></i> Un-scored Entry</span>
-            <span class="m-1"><i class="fa fa-check-square text-success" aria-hidden="true"></i> Scored Entry</span>
+            <span class="m-1"><i class="fa fa-square text-info" aria-hidden="true"></i> Un-scored</span>
+            <span class="m-1"><i class="fa fa-check-square text-success" aria-hidden="true"></i> Scored</span>
         </div>
         <div class="list-group">
-            {% for p in challenge.players %}
+            {% for p in entries %}
             <a class="entryLink list-group-item list-group-item-info list-group-item-action d-flex justify-content-between" href="#" player_id="{{ p.id }}">
                 <div class="flex-column">
-                    <p class="lead m-0">Player {{ loop.index }}</p>
+                    <p class="lead m-0">Entry {{ loop.index }}</p>
                     <div class="badge badge-info">Current Score: <span id="score{{p.id}}">{{ challenge.player_score(p) }}</span></div>
                 </div>
                 <div id="status{{p.id}}" class="ml-auto mr-3">
