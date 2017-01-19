@@ -24,6 +24,7 @@ class ExtendedConfirmRegisterForm(ConfirmRegisterForm):
 
 
 def create_admin(app, db, user_datastore):
+    
     if not user_datastore.get_user(app.config['APP_EMAIL']):
 
         admin_roles = ('ADMIN', 'SUPER_ADMIN')
