@@ -14,7 +14,7 @@
     <p class="alert alert-info">Please note all times are {{ config.DEFAULT_TIMEZONE }}</p>
     <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
         {{ form.hidden_tag() }}
-        {{ render_field(form.name) }}
+        {{ render_field(form.name, maxlength=30) }}
         {{ render_field(form.description) }}
         {{ render_field(form.judge_id) }}
         {{ render_field(form.date_range) }}
