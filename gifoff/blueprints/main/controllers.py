@@ -2,6 +2,7 @@ from uuid import uuid4
 from random import shuffle
 
 import arrow
+import trueskill
 
 from flask import Blueprint, url_for, render_template, request, redirect, abort, flash, current_app, jsonify
 from flask_mail import Message
@@ -11,7 +12,7 @@ from .helpers import IDSlugConverter, add_app_url_map_converter
 from ...cache import cache, clear_keys
 from ...forms import GroupForm, ChallengeEntry, ChallengeForm, PromptForm
 from ...mail import send_async_email
-from ...models import db, db_commit, User, Group, Challenge, Entry, Prompt
+from ...models import db, db_commit, User, Group, Challenge, Entry, Prompt, Rating, FFARating
 
 Blueprint.add_app_url_map_converter = add_app_url_map_converter
 
@@ -151,6 +152,18 @@ def close(challenge_id):
 
         if winner:
             challenge.winner = winner
+            
+            if len(challenge.players) > 1:
+                ratings = sorted([(p, challenge.player_score(p), FFARating.get_or_create(player=p).rating) 
+                                   for p in challenge.players], key=lambda entry: entry[1], reverse=True)
+    
+                new_ratings = trueskill.rate([(r[2],) for r in ratings])
+                
+                player_ratings = zip([p[0] for p in ratings], [r[0] for r in new_ratings])
+                
+                for player, new_rating in player_ratings:
+                    player.group_rating.rating = new_rating
+            
             if db_commit():
                 clear_keys(cache, ['leaders{}'.format(challenge.group.id),
                                    'recent{}'.format(challenge.group.id)]

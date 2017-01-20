@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from random import randint
 
 import arrow
+import trueskill
 
 from flask_security import UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
@@ -72,7 +73,7 @@ class User(Base, UserMixin):
     
     player_of = db.relationship('Group', secondary='group_players')
     author_of = db.relationship('Group', secondary='group_authors')
-    
+        
     @hybrid_method
     def group_entries(self, group):  
         return db.session.query(func.count(Entry.id)).filter(Entry.player_id==self.id).filter(Entry.prompt_id.in_(group.prompts)).scalar() or 0
@@ -319,6 +320,73 @@ class Entry(Base):
         return '{}: {}'.format(self.prompt_id, self.player.username)
 
 
+
+class FFARating(Base):
+    __tablename__ = 'ffa_rating'
+    player_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    player = db.relationship('User', backref=db.backref('group_rating', uselist=False, cascade='all, delete'))
+    
+    _mu = db.Column(db.Float(), nullable=False, default=25.000) #skill
+    _sigma = db.Column(db.Float(), nullable=False, default=8.333) #certainty
+    
+    @hybrid_property
+    def mu(self):
+        return round(self._mu, 3)
+    
+    @mu.setter
+    def mu(self, value):
+        self._mu = value
+        
+    @hybrid_property
+    def sigma(self):
+        return round(self._sigma, 3)
+    
+    @sigma.setter
+    def sigma(self, value):
+        self._sigma = value
+    
+    @hybrid_property
+    def rating(self):
+        return trueskill.Rating(mu=self._mu, sigma=self._sigma)
+    
+    @rating.setter
+    def rating(self, obj):
+        self._mu = obj.mu
+        self._sigma = obj.sigma
+    
+
+class Rating(Base): # 1v1 rating
+    __tablename__ = 'rating'
+    player_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    player = db.relationship('User', backref=db.backref('solo_rating', uselist=False, cascade='all, delete'))
+    
+    _mu = db.Column(db.Float(), nullable=False, default=25.000) #skill
+    _sigma = db.Column(db.Float(), nullable=False, default=8.333) #certainty
+    
+    @hybrid_property
+    def mu(self):
+        return self._mu
+    
+    @mu.setter
+    def mu(self, value):
+        self._mu = round(value, 3)
+        
+    @hybrid_property
+    def sigma(self):
+        return self._sigma
+    
+    @sigma.setter
+    def sigma(self, value):
+        self._sigma = round(value, 3)
+    
+    @hybrid_property
+    def rating(self):
+        return trueskill.Rating(mu=self._mu, sigma=self._sigma)
+    
+    @rating.setter
+    def rating(self, obj):
+        self.mu = obj.mu
+        self.sigma = obj.sigma
 
 # Define Role model
 class Role(Base, RoleMixin):
