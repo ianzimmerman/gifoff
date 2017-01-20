@@ -99,6 +99,23 @@ class User(Base, UserMixin):
     def group_avg_score(self, group):
         return round(self.group_score(group)/(self.group_entries(group) or 1), 1)
     
+    @hybrid_method
+    def group_rating(self, group):
+        rate_obj = db.session.query(FFARating).filter(FFARating.player==self, FFARating.group==group).first()
+        if rate_obj:
+            return rate_obj.rating
+        else:
+            return trueskill.Rating()
+    
+    @hybrid_method
+    def update_group_rating(self, group, rating):
+        rate_obj = db.session.query(FFARating).filter(FFARating.player==self, FFARating.group==group).first()
+        if rate_obj:
+            rate_obj.rating = rating
+            db_commit()
+        else:
+            raise Exception('Entry not found')
+    
     def __repr__(self):
         return '{}'.format(self.email)
 
@@ -323,8 +340,12 @@ class Entry(Base):
 
 class FFARating(Base):
     __tablename__ = 'ffa_rating'
+    
+    group_id = db.Column(db.Integer(), db.ForeignKey(Group.id))
+    group = db.relationship('Group', backref=db.backref('ffa_ratings', lazy='dynamic', cascade='all, delete'))
+    
     player_id = db.Column(db.Integer(), db.ForeignKey(User.id))
-    player = db.relationship('User', backref=db.backref('group_rating', uselist=False, cascade='all, delete'))
+    player = db.relationship('User', backref=db.backref('ffa_rating', lazy='dynamic', cascade='all, delete'))
     
     _mu = db.Column(db.Float(), nullable=False, default=25.000) #skill
     _sigma = db.Column(db.Float(), nullable=False, default=8.333) #certainty
@@ -365,19 +386,19 @@ class Rating(Base): # 1v1 rating
     
     @hybrid_property
     def mu(self):
-        return self._mu
+        return round(self._mu, 3)
     
     @mu.setter
     def mu(self, value):
-        self._mu = round(value, 3)
+        self._mu = value
         
     @hybrid_property
     def sigma(self):
-        return self._sigma
+        return round(self._sigma, 3)
     
     @sigma.setter
     def sigma(self, value):
-        self._sigma = round(value, 3)
+        self._sigma = value
     
     @hybrid_property
     def rating(self):
