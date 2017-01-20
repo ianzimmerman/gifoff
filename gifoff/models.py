@@ -159,11 +159,11 @@ class Group(Base):
     
     @hybrid_property
     def leaders(self):
-        this = db.session.query(User)\
-            .filter(User.id.in_([p.id for p in self.players]))\
-            .filter()\
-            .order_by(desc(User.group_wins(self)))\
-            .order_by(desc(User.group_score(self))).limit(3)
+        this = db.session.query(FFARating)\
+            .filter(FFARating.group==self)\
+            .order_by(desc(FFARating._mu)).limit(3)
+            # .filter(User.id.in_([p.id for p in self.players]))\
+            # .order_by(desc(User.group_score(self))).limit(3)
         
         return this
           
@@ -352,7 +352,7 @@ class FFARating(Base):
     
     @hybrid_property
     def mu(self):
-        return round(self._mu, 3)
+        return round(self._mu, 2)
     
     @mu.setter
     def mu(self, value):
@@ -360,7 +360,7 @@ class FFARating(Base):
         
     @hybrid_property
     def sigma(self):
-        return round(self._sigma, 3)
+        return round(self._sigma, 2)
     
     @sigma.setter
     def sigma(self, value):
@@ -386,7 +386,7 @@ class Rating(Base): # 1v1 rating
     
     @hybrid_property
     def mu(self):
-        return round(self._mu, 3)
+        return round(self._mu, 2)
     
     @mu.setter
     def mu(self, value):
@@ -394,7 +394,7 @@ class Rating(Base): # 1v1 rating
         
     @hybrid_property
     def sigma(self):
-        return round(self._sigma, 3)
+        return round(self._sigma, 2)
     
     @sigma.setter
     def sigma(self, value):

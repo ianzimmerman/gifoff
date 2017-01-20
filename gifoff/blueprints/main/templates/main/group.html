@@ -65,13 +65,13 @@
             <div class="list-group">
                 {% set bg_color = ['lightyellow', 'whitesmoke', 'antiquewhite'] %}
                 {% set color = ['gold', 'silver', 'sienna'] %}
-                {% for p in group.leaders %}
+                {% for l in group.leaders %}
                     <span class="list-group-item" style="background-color: {{ bg_color[loop.index-1] }}">
                         <i class="fa fa-trophy mr-3" style="color: {{ color[loop.index-1] }}; font-size: x-large"></i> 
-                        <p class="lead mb-0">{{ p.username }}</p>
+                        <p class="lead mb-0">{{ l.player.username }}</p>
                         <span id="badges" class="ml-auto">
-                            <span class="badge badge-success">{{ p.group_wins(group) }} Wins</span>
-                            <span class="badge badge-info">{{ p.group_avg_score(group) }} Average</span>
+                            <span class="badge badge-success">{{ l.player.group_wins(group) }} Wins</span>
+                            <span class="badge badge-info">{{ l.mu }} TS</span>
                         </span>
                     </span>
                 {% endfor %}
