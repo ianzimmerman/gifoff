@@ -42,7 +42,7 @@ def index():
             Challenge.utc_end_time)
         c['active'] = challenges.filter(Challenge.judge != current_user, Challenge.winner_id == None).order_by(
             Challenge.utc_end_time)
-        c['recent'] = challenges.filter(Challenge.winner_id != None).order_by(Challenge.date_modified.desc()).limit(10)
+        c['recent'] = challenges.filter(Challenge.winner_id != None).order_by(Challenge.date_modified.desc()).limit(5)
 
     return render_template('main/index.html', challenges=c)
 
@@ -57,7 +57,7 @@ def group(group_id):
 
     c = dict()
     c['active'] = challenges.filter(Challenge.winner_id == None)
-    c['recent'] = challenges.filter(Challenge.winner_id != None).limit(10)
+    c['recent'] = challenges.filter(Challenge.winner_id != None).limit(5)
 
     return render_template('main/group.html', group=group, challenges=c)
 
