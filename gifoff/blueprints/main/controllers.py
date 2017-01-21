@@ -450,7 +450,7 @@ def delete(model, model_id):
 
 
 @main.route('clear-cache')
-@roles_required(['ADMIN'])
+@roles_required('ADMIN')
 def clear_cache():
     cache.clear()
     flash('Site cache cleared', 'success')
