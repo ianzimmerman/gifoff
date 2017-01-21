@@ -13,10 +13,12 @@ class IndexView(AdminIndexView):
 
 
 class CommonModelView(ModelView):
+    ignore_hidden = False
+    column_display_pk = True
+    
     form_excluded_columns = ('date_created',
                              'date_modified')
-    column_display_pk = True
-
+    
     def is_accessible(self):
         return current_user.has_role('ADMIN')
 
@@ -36,7 +38,6 @@ class UserModelView(CommonModelView):
 class RoleModelView(CommonModelView):
     def is_accessible(self):
         return current_user.has_role('SUPER_ADMIN')
-
 
 
 views = [
