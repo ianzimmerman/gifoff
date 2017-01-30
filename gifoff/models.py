@@ -127,7 +127,7 @@ class Group(Base):
     
     name = db.Column(db.String(250), nullable=False, unique=True)
     description = db.Column(db.String(250), nullable=True, unique=False)
-    pin  = db.Column(db.String(250), nullable=False, unique=False)
+    pin  = db.Column(db.String(250), nullable=False, unique=True)
     
     players = db.relationship('User', secondary='group_players')
     authors = db.relationship('User', secondary='group_authors')
@@ -336,7 +336,70 @@ class Entry(Base):
     def __repr__(self):
         return '{}: {}'.format(self.prompt_id, self.player.username)
 
+class Tournament(Base):
+    __tablename__ = 'tournament'
+    
+    organizer_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    organizer = db.relationship('User', backref=db.backref('owned_tournaments', lazy='dynamic', cascade='all, delete'))  
+    
+    name = db.Column(db.String(250), nullable=False, unique=False)
+    description = db.Column(db.String(250), nullable=True, unique=False)
+    pin  = db.Column(db.String(250), nullable=False, unique=True)
+    
+    max_players = db.Column(db.Integer(), nullable=False, default=64)
+    
+    public_entry = db.Column('has_public_entry', db.Boolean(), nullable=False, server_default='0')
+    public_voting = db.Column('has_public_voting', db.Boolean(), nullable=False, server_default='0')
+    
+    group_id = db.Column(db.Integer(), db.ForeignKey(Group.id))
+    group = db.relationship('Group', backref=db.backref('tournaments', lazy='dynamic', cascade='all, delete'))
+    
+    utc_start_time = db.Column(db.DateTime())
+    
+    entry_time = db.Column(db.Integer(), nullable=False, default=60*60*24) # length in seconds, default 1 day
+    voting_time = db.Column(db.Integer(), nullable=False, default=60*60*24) # length in seconds, default 1 day
+    
+    @hybrid_property
+    def start_time(self):
+        return arrow.get(self.utc_start_time)
 
+
+class TournamentPlayers(Base):
+    __tablename__ = "tournament_players"
+    
+    tournament_id = db.Column(db.Integer(), db.ForeignKey('tournament.id', ondelete='CASCADE'))
+    tournament = db.relationship('Tournament', backref=db.backref('players', lazy='dynamic', cascade='all, delete'))
+    
+    player_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
+    player = db.relationship('User', backref=db.backref('tournaments', lazy='dynamic', cascade='all, delete'))
+    
+    seed = db.Column(db.Integer(), nullable=True)
+
+class TournamentRound(Base):
+    __tablename__ = 'tournament_round'
+    
+    tournament_id = db.Column(db.Integer(), db.ForeignKey('tournament.id', ondelete='CASCADE'))
+    
+    player_one_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    player_one = db.relationship('User', foreign_keys=[player_one_id])
+    
+    player_two_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    player_two = db.relationship('User', foreign_keys=[player_two_id])
+    
+    player_one_entry = db.Column(db.String(250), nullable=True, unique=False)
+    player_two_entry = db.Column(db.String(250), nullable=True, unique=False)
+
+
+class TournamentVote(Base):
+    __tablename__ = 'tournament_vote'
+    
+    tournament_round_id = db.Column(db.Integer(), db.ForeignKey('tournament_round.id', ondelete='CASCADE'))
+    
+    voter_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    voter = db.relationship('User', foreign_keys=[voter_id])
+    
+    player_one_score = db.Column(db.Float())
+    player_two_score = db.Column(db.Float())
 
 class FFARating(Base):
     __tablename__ = 'ffa_rating'
