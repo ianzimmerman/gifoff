@@ -21,6 +21,14 @@ def validate_url(self, field):
     
     if 'gif' not in r.headers['content-type']:
         raise validators.ValidationError('URL is not a gif.')
+    
+def number_range(min, max):
+    
+    def _range(form, field):
+        if field.data < min or field.data > max:
+            raise validators.ValidationError('Max Players should be in range {} to {}'.format(min, max))
+    
+    return _range
 
 def unique_name(model):
     message = 'Name must be unique.'
@@ -52,3 +60,18 @@ class ChallengeEntry(Form):
     url = StringField('URL', validators=[validate_url, validators.DataRequired('Please Enter a value')])
     prompt_id = HiddenField()
     entry_id = HiddenField()
+
+class TournamentForm(Form):
+    name = StringField('Name', [validators.Length(min=1, max=30, message="Length: 1-30 characters")])
+    description = TextAreaField('Description', [validators.Length(max=140, message="Max Length is 140 characters"), validators.Optional()])
+    
+    max_players = IntegerField('Max Players', [number_range(2, 64)])
+    
+    public_entry = BooleanField('Allow Public Entry')
+    public_voting = BooleanField('Allow Public Voting')
+    
+    active = BooleanField('Active')
+    
+    entry_time = IntegerField('Entry Period (in hours)', [number_range(1, 24)])
+    voting_time = IntegerField('Voting Period (in hours)', [number_range(1, 24)])
+    
