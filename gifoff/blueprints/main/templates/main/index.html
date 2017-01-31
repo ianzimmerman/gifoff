@@ -4,8 +4,7 @@
 {% block description %}Free app to have .gif battles with your friends. Set up private groups, choose a judge, and go.{% endblock %}
 {% block content %}
     {% if current_user.is_authenticated %}
-    <div class="flex-column">
-            <h1>Home</h1>
+    <div class="flex-column mt-2">
             <nav class="nav flex-column flex-sm-row bg-faded">
               <span class="flex-sm-fill text-sm-center nav-link text-faded hidden-sm-down">Your Groups:</span>
               {% for g in current_user.player_of %}
