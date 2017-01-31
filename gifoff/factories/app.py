@@ -49,6 +49,9 @@ def create_app():
     # import blueprints
     from ..blueprints.main.controllers import main
     app.register_blueprint(main)
+    
+    from ..blueprints.tournament.controllers import tournament
+    app.register_blueprint(tournament)
 
     db.create_all()
 
