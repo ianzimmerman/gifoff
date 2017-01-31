@@ -12,25 +12,35 @@
     }
 </style>
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, end='Challenge Details') }}{% endblock %}
 {% block content %}
-    <div class="mt-2 pl-0 pr-0 d-flex justify-content-between">
-        {{ status_tag(challenge) }}
+    <div class="mt-2 mb-2 pl-0 pr-0 d-flex">
+        <a href="{{ url_for('main.group', group_id=challenge.group) }}" 
+            class="">
+            <i class="fa fa-chevron-left"></i> <strong>{{ challenge.group.name }}</strong>
+        </a>
         {% if current_user in [challenge.group.owner, challenge.author] %}
             <a href="{{ url_for('main.delete_challenge', challenge_id=challenge.id) }}" 
-                class="badge badge-danger" onclick="return confirm('Really?')">
+                class="ml-auto btn btn-sm btn-danger" onclick="return confirm('Really?')">
                 <i class="fa fa-trash"></i> Delete Challenge
             </a>
         {% endif %}
     </div> 
     
     <!-- Common Header -->
+    {{ status_tag(challenge) }}
     <h1 class="display-4" style="margin-bottom: 0">{{ challenge.name }}</h1>
-    <p class="text-muted" style="margin-top: 0; margin-bottom: 0">created by {{ challenge.author.username }}</p>
-    <p class="text-muted" style="margin-top: 0">judged by {{ challenge.judge.username }}</p>
-    <blockquote class="blockquote">
-        {{ challenge.description }}
-    </blockquote>   
+    <div class="flex-column flex-sm-row justify-content-start">
+        <p class="m-1 badge badge-primary">Author: {{ challenge.author.username }}</p>
+        <p class="badge badge-primary m-1">Judge: {{ challenge.judge.username }}</p>
+        {% if challenge.winner %}
+            <p class="badge badge-success m-1">Winner: {{ challenge.winner.username }}</p>
+        {% endif %}
+    </div>
+    {% if challenge.description %}
+        <blockquote class="blockquote mt-2">
+            {{ challenge.description }}
+        </blockquote>   
+    {% endif %}
     
     <!-- Prompt List -->
     <h2 class="h4 text-muted">Prompts</h2>
@@ -61,7 +71,7 @@
     
     
     <!-- Entry List for Judge -->
-    {% if challenge.complete == false and current_user == challenge.judge and challenge.entry_count > 0 %}
+    {% if challenge.complete == false and current_user == challenge.judge %}
         <h2 class="h4 text-muted">Judge Entries</h2>
         <div class="d-flex justify-content-end m-2">
             <span class="m-1"><i class="fa fa-square-o text-warning" aria-hidden="true"></i> No Entry</span>
