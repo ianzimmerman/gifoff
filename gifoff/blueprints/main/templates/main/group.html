@@ -4,8 +4,23 @@
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" />
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumbs(end=group.name) }}{% endblock %}
 {% block content %}
+    <div class="d-flex mt-2">
+          {% if current_user in group.authors and group.incomplete_count == 0 %}
+            <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="btn btn-sm btn-primary">
+                <i class="fa fa-fw fa-plus-square"></i> New Challenge
+            </a>
+          {% endif %}
+          {% if current_user == group.owner %}
+                <a href="{{ url_for('main.delete', model='group', model_id=group.id) }}" class="ml-auto btn btn-sm btn-danger" onclick="return confirm('Really?')">
+                    <i class="fa fa-trash"></i> Delete Group
+                </a>
+                {% else %}
+                <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="ml-auto btn btn-sm btn-warning" onclick="return confirm('Really?')">
+                    <i class="fa fa-sign-out"></i> Leave Group
+                </a>
+                {% endif %}
+    </div>
     <div class="row ml-0 mr-0">
         <div class="col-12 p-0 p-md-1">
             <h1 class="display-4" style="margin-bottom: 0">{{ group.name }}</h1>
@@ -33,23 +48,6 @@
                 <a href="{{ url_for('main.join_group', uuid=group.pin, _external=True) }}" class="btn btn-sm btn-success">
                     Press and hold for invite link
                 </a>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-start">
-                {% if current_user in group.authors and group.incomplete_count == 0 %}
-                    <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="m-1 btn btn-sm btn-primary">
-                        <i class="fa fa-fw fa-plus-square"></i> New Challenge
-                    </a>
-                {% endif %}
-                {% if current_user == group.owner %}
-                <a href="{{ url_for('main.delete', model='group', model_id=group.id) }}" class="m-1 ml-auto btn btn-danger btn-sm align-self-start" onclick="return confirm('Really?')">
-                    <i class="fa fa-trash"></i> Delete Group
-                </a>
-                {% else %}
-                <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="m-1 ml-auto btn btn-warning btn-sm align-self-start" onclick="return confirm('Really?')">
-                    <i class="fa fa-sign-out"></i> Leave Group
-                </a>
-                {% endif %}
             </div>
             <hr>
         </div>
