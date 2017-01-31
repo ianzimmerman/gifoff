@@ -247,7 +247,7 @@ class Challenge(Base):
         elif self.pending:
             return ('With Judge', 'default')
         elif self.complete:
-            return ('<i class="fa fa-star"></i> {}'.format(self.winner.username), 'success')
+            return ('Complete', 'success')
         
         return False 
     
@@ -344,7 +344,7 @@ class Tournament(Base):
     
     name = db.Column(db.String(250), nullable=False, unique=False)
     description = db.Column(db.String(250), nullable=True, unique=False)
-    pin  = db.Column(db.String(250), nullable=False, unique=True)
+    # pin  = db.Column(db.String(250), nullable=False, unique=True)
     
     max_players = db.Column(db.Integer(), nullable=False, default=64)
     
@@ -354,14 +354,10 @@ class Tournament(Base):
     group_id = db.Column(db.Integer(), db.ForeignKey(Group.id))
     group = db.relationship('Group', backref=db.backref('tournaments', lazy='dynamic', cascade='all, delete'))
     
-    utc_start_time = db.Column(db.DateTime())
+    active = db.Column('is_active', db.Boolean(), nullable=False, server_default='0')
     
     entry_time = db.Column(db.Integer(), nullable=False, default=60*60*24) # length in seconds, default 1 day
     voting_time = db.Column(db.Integer(), nullable=False, default=60*60*24) # length in seconds, default 1 day
-    
-    @hybrid_property
-    def start_time(self):
-        return arrow.get(self.utc_start_time)
 
 
 class TournamentPlayers(Base):
@@ -379,6 +375,18 @@ class TournamentRound(Base):
     __tablename__ = 'tournament_round'
     
     tournament_id = db.Column(db.Integer(), db.ForeignKey('tournament.id', ondelete='CASCADE'))
+
+    #always store UTC time
+    utc_entry_start_time = db.Column(db.DateTime())  
+    utc_vote_start_time = db.Column(db.DateTime())
+    
+
+    
+class TournamentEntry(Base):
+    __tablename__ = 'tournament_entry'
+    
+    tournament_round_id = db.Column(db.Integer(), db.ForeignKey('tournament_round.id', ondelete='CASCADE'))
+    round = db.relationship('TournamentRound', backref=db.backref('entries', lazy='dynamic', cascade='all, delete'))
     
     player_one_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     player_one = db.relationship('User', foreign_keys=[player_one_id])
@@ -388,12 +396,15 @@ class TournamentRound(Base):
     
     player_one_entry = db.Column(db.String(250), nullable=True, unique=False)
     player_two_entry = db.Column(db.String(250), nullable=True, unique=False)
+    
+    winner_id = db.Column(db.Integer(), db.ForeignKey(User.id))
+    winner = db.relationship('User', foreign_keys=[winner_id])
 
 
 class TournamentVote(Base):
     __tablename__ = 'tournament_vote'
     
-    tournament_round_id = db.Column(db.Integer(), db.ForeignKey('tournament_round.id', ondelete='CASCADE'))
+    tournament_entry_id = db.Column(db.Integer(), db.ForeignKey('tournament_entry.id', ondelete='CASCADE'))
     
     voter_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     voter = db.relationship('User', foreign_keys=[voter_id])
@@ -444,8 +455,8 @@ class Rating(Base): # 1v1 rating
     player_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     player = db.relationship('User', backref=db.backref('solo_rating', uselist=False, cascade='all, delete'))
     
-    _mu = db.Column(db.Float(), nullable=False, default=25.000) #skill
-    _sigma = db.Column(db.Float(), nullable=False, default=8.333) #certainty
+    _mu = db.Column(db.Float(), nullable=False, default=25.0) #skill
+    _sigma = db.Column(db.Float(), nullable=False, default=8.333333333) #certainty
     
     @hybrid_property
     def mu(self):
