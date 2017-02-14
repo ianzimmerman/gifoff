@@ -71,7 +71,7 @@
     
     
     <!-- Entry List for Judge -->
-    {% if challenge.complete == false and current_user == challenge.judge %}
+    {% if challenge.pending == true and current_user == challenge.judge %}
         <h2 class="h4 text-muted">Judge Entries</h2>
         <div class="d-flex justify-content-end m-2">
             <span class="m-1"><i class="fa fa-square-o text-warning" aria-hidden="true"></i> No Entry</span>
@@ -137,6 +137,9 @@
             {% endfor %}
         </div>
         {% endcache %}
+    {% elif challenge.active %}
+        <h2 class="h4 text-muted">Submissions Pending!</h2>
+        {{ status_tag(challenge) }}
     {% endif %}
     
     <!-- Entry Link -->
