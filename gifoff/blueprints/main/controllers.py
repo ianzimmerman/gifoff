@@ -233,7 +233,7 @@ def new_challenge(group_id):
     a = arrow.utcnow()
 
     date_range = {
-        's': a.replace(minutes=+10).to(current_app.config['DEFAULT_TIMEZONE']).naive,
+        's': a.replace(minutes=-10).to(current_app.config['DEFAULT_TIMEZONE']).naive,
         'e': a.replace(hours=+4, minutes=+10).to(current_app.config['DEFAULT_TIMEZONE']).naive
     }
 
@@ -296,7 +296,7 @@ def edit_challenge(challenge_id):
 
     a = arrow.utcnow()
 
-    min_time = a.to(current_app.config['DEFAULT_TIMEZONE']).naive
+    min_time = a.replace(minutes=-10).to(current_app.config['DEFAULT_TIMEZONE']).naive
 
     if request.method != 'POST':
         challenge.utc_start_time = challenge.start_time.to(current_app.config['DEFAULT_TIMEZONE']).datetime
