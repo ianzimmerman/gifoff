@@ -50,8 +50,8 @@ def create_app():
     from ..blueprints.main.controllers import main
     app.register_blueprint(main)
     
-    from ..blueprints.tournament.controllers import tournament
-    app.register_blueprint(tournament)
+#     from ..blueprints.tournament.controllers import tourney
+#     app.register_blueprint(tourney)
 
     db.create_all()
 

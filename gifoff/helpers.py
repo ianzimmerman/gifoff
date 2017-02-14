@@ -39,3 +39,19 @@ def admin_required(func):
     return decorated_view
 
 
+class Bracket:
+    def __init__(self, players):
+        self.players = players
+    
+    @property
+    def bracket(self):
+        rounds = self.players//2
+        round_pairings = [[n+1, self.players-(n)] for n in range(rounds)]
+        
+        while rounds > 2:
+            rounds //= 2
+            prev_round = round_pairings
+            round_pairings = [[prev_round[n], prev_round.pop()] for n in range(rounds)]
+        
+        
+        return round_pairings

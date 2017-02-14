@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% from "macros.html" import tourney_list %}
+{% block title %}Gif Tournaments{% endblock %}
+{% block description %}{% endblock %}
+{% block content %}
+    {% if current_user.is_authenticated %}
+    <div class="row ml-0 mr-0">
+        <div class="col-md  p-0 p-md-1">
+            <h2 class="h5 text-muted">Tournaments you are playing</h2>
+            {{ tourney_list(playing) }}
+            <h2 class="h5 text-muted">Tournaments you Admin</h2>
+            {{ tourney_list(current_user.owned_tournaments) }}
+        </div>
+    </div>
+    <hr>
+    {% endif %}
+{% endblock %}

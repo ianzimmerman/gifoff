@@ -8,10 +8,14 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.6/select2-bootstrap.css" />
 -->
 {% endblock %}
-{% block breadcrumb %}{{ breadcrumbs(group=challenge.group, challenge=challenge, new="Edit") }}{% endblock %}
 {% block content %}
-    <h1>Edit {{ challenge.name }}</h1>
-    <p class="alert alert-info">Please note all times are {{ config.DEFAULT_TIMEZONE }}</p>
+    <div class="mt-2 mb-2 pl-0 pr-0 d-flex">
+        <a href="{{ url_for('main.challenge', group_id=challenge.group, challenge_id=challenge) }}" 
+            class="">
+            <i class="fa fa-chevron-left"></i> <strong>{{ challenge.name }}</strong>
+        </a>
+    </div>
+<!--     <h1>Edit {{ challenge.name }}</h1> -->
     <form class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
         {{ form.hidden_tag() }}
         {{ render_field(form.name, maxlength=30) }}
@@ -21,6 +25,7 @@
         {# { render_field(form.utc_end_time) } #}
         <br><button class="btn btn-primary" type="submit">Edit</button>
     </form>
+    <p class="alert alert-info">Please note all times are {{ config.DEFAULT_TIMEZONE }}</p>
     
 {% endblock %}
 {% block scripts %}

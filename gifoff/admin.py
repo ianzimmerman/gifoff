@@ -2,7 +2,7 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_security import current_user, roles_required
 
-from .models import db, User, Role, Group, Challenge, Prompt, Entry, FFARating, Rating
+import gifoff.models as _m
 
 
 class IndexView(AdminIndexView):
@@ -41,18 +41,23 @@ class RoleModelView(CommonModelView):
 
 
 views = [
-    dict(view=User, cls=UserModelView),
-    dict(view=Role, cls=RoleModelView),
-    dict(view=Group, cls=CommonModelView),
-    dict(view=Challenge, cls=CommonModelView),
-    dict(view=Prompt, cls=CommonModelView),
-    dict(view=Entry, cls=CommonModelView),
-    dict(view=FFARating, cls=CommonModelView),
-    dict(view=Rating, cls=CommonModelView),
+    dict(view=_m.User, cls=UserModelView),
+    dict(view=_m.Role, cls=RoleModelView),
+    dict(view=_m.Group, cls=CommonModelView),
+    dict(view=_m.Challenge, cls=CommonModelView),
+    dict(view=_m.Prompt, cls=CommonModelView),
+    dict(view=_m.Entry, cls=CommonModelView),
+    dict(view=_m.FFARating, cls=CommonModelView),
+    dict(view=_m.Rating, cls=CommonModelView),
+#     dict(view=_m.Tournament, cls=CommonModelView),
+#     dict(view=_m.TournamentPlayers, cls=CommonModelView),
+#     dict(view=_m.TournamentRound, cls=CommonModelView),
+#     dict(view=_m.TournamentEntry, cls=CommonModelView),
+#     dict(view=_m.TournamentVote, cls=CommonModelView),
 ]
 
 
 admin = Admin(name="Admin", index_view=IndexView(), template_mode='bootstrap3')
 
 for view in views:
-    admin.add_view(view['cls'](view['view'], db.session))
+    admin.add_view(view['cls'](view['view'], _m.db.session))

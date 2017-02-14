@@ -25,7 +25,7 @@ def validate_url(self, field):
 def number_range(min, max):
     
     def _range(form, field):
-        if field.data < min or field.data > max:
+        if field.data and (int(field.data) < min or int(field.data) > max):
             raise validators.ValidationError('Max Players should be in range {} to {}'.format(min, max))
     
     return _range
@@ -65,13 +65,15 @@ class TournamentForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=30, message="Length: 1-30 characters")])
     description = TextAreaField('Description', [validators.Length(max=140, message="Max Length is 140 characters"), validators.Optional()])
     
-    max_players = IntegerField('Max Players', [number_range(2, 64)])
+    max_players = SelectField('Tournament Bracket Size', coerce=int, choices=[(2**x, '{} {}'.format(2**x, 'players')) for x in range(2,7)])
     
     public_entry = BooleanField('Allow Public Entry')
     public_voting = BooleanField('Allow Public Voting')
     
+    group_id = SelectField('Group', coerce=int, choices=[])
+    
     active = BooleanField('Active')
     
-    entry_time = IntegerField('Entry Period (in hours)', [number_range(1, 24)])
-    voting_time = IntegerField('Voting Period (in hours)', [number_range(1, 24)])
+    entry_time = IntegerField('Entry Period (in hours)', validators=[number_range(1, 24)], default=4)
+    voting_time = IntegerField('Voting Period (in hours)', validators=[number_range(1, 24)], default=1)
     

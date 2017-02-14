@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_field %}
+{% block title %}New Challenge{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.6/select2-bootstrap.css" />
+{% endblock %}
+{% block content %}
+    <div class="mt-2 mb-2 pl-0 pr-0 d-flex">
+        <a href="{{ url_for('tourney.index') }}" class="">
+            <i class="fa fa-chevron-left"></i> <strong>Tournaments</strong>
+        </a>
+    </div>
+    <h1>Create New Tournament</h1>
+    <form id="tform" class="form-group {{ 'has-danger' if form.errors }}" action="" method="POST">
+        {{ form.hidden_tag() }}
+        {{ render_field(form.name, maxlength=30) }}
+        {{ render_field(form.description) }}
+        {{ render_field(form.max_players) }}
+        {{ render_field(form.group_id) }}
+        {{ render_field(form.public_entry) }}
+        {{ render_field(form.public_voting) }}
+        {{ render_field(form.entry_time, type="number") }}
+        {{ render_field(form.voting_time, type="number") }}
+        <button class="btn btn-primary" type="submit">Save Tournament</button>
+    </form>
+    
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        //$('#group_id').select2();
+
+    });
+</script>
+{% endblock %}

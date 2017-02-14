@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% from "macros.html" import tourney_list %}
+{% block title %}{{t.name}}{% endblock %}
+{% block description %}{% endblock %}
+{% block content %}
+    <div class="mt-2 mb-2 pl-0 pr-0 d-flex">
+        <a href="{{ url_for('tourney.index') }}" class="">
+            <i class="fa fa-chevron-left"></i> <strong>Tournaments</strong>
+        </a>
+    </div>
+    <h1>{{t.name}} <small>{{ t.players.count() }}/{{ t.max_players }} players signed up</small></h1>
+    {% if t.active==false and t.full==false %}
+    <a href="" class="btn btn-primary">Sign Up</a><br>
+    {% endif %}
+    <h2>Participants</h2>
+    {% for p in t.players %}
+        {{ p.player.username }} <span class="badge badge-default">{{ p.player.solo_rating or 0 }}</span><br>
+    {% endfor %}
+{% endblock %}
