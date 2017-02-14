@@ -212,31 +212,29 @@ class Challenge(Base):
     def complete(self):
         if self.winner_id:
             return True
-        else:
-            return False
-    
-    @hybrid_property
-    def active(self):
-        if self.complete or arrow.utcnow() > self.end_time:
-            return False
-        elif arrow.utcnow() < self.start_time:
-            return False
-        elif arrow.utcnow() < self.end_time:
-            return True
-    
-    @hybrid_property
-    def pending(self):
-        if self.complete is False and arrow.utcnow() > self.end_time:
-            return True
-        else:
-            return False
+        
+        return False
     
     @hybrid_property
     def upcoming(self):
         if self.complete is False and arrow.utcnow() < self.start_time:
             return True
-        else:
+        
+        return False
+    
+    @hybrid_property
+    def pending(self):
+        if self.complete is False and arrow.utcnow() > self.end_time:
+            return True
+        
+        return False
+    
+    @hybrid_property
+    def active(self):
+        if True in (self.complete, self.pending, self.upcoming):
             return False
+        
+        return True
     
     @hybrid_property
     def status_tag(self):
