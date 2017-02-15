@@ -71,7 +71,7 @@ def challenge(group_id, challenge_id):
 
     if challenge.active and current_user not in [challenge.author, challenge.judge]:
         return redirect(url_for('main.enter', challenge_id=challenge))
-    elif challenge.active and current_user == challenge.judge: 
+    elif current_user == challenge.judge:
         entries = challenge.players
         shuffle(entries)
 
