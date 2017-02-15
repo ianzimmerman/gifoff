@@ -137,7 +137,7 @@
             {% endfor %}
         </div>
         {% endcache %}
-    {% elif challenge.active %}
+    {% elif challenge.active and current_user == challenge.judge %}
         <h2 class="h4 text-muted">Submissions Pending!</h2>
         {{ status_tag(challenge) }}
     {% endif %}
