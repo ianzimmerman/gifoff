@@ -131,9 +131,11 @@
     var data = new google.visualization.DataTable({{group.leaderboard|safe }});
 
     var options = {
-      title: 'Group Skill',
+      title: 'Group Standings',
       curveType: 'function',
       interpolateNulls: true,
+      pointSize: 5,
+      focusTarget: 'category',
       legend: { position: 'bottom' }
     };
 
