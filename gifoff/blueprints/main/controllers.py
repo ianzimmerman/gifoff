@@ -166,6 +166,7 @@ def close(challenge_id):
             
             if db_commit():
                 clear_keys(cache, ['leaders{}'.format(challenge.group.id),
+                                   'leaderboard{}'.format(challenge.group.id)
                                    'recent{}'.format(challenge.group.id)]
                            )
                 try:
