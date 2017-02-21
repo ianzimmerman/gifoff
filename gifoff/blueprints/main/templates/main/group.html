@@ -95,7 +95,9 @@
         </div>
         {% endcache -%}
     </div>
+    {%- cache 60*60*24*7, 'leaderboard'+group.id|string %}
     <div id="chart_div"></div>
+    {% endcache -%}
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
