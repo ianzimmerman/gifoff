@@ -95,8 +95,12 @@
         </div>
         {% endcache -%}
     </div>
-    
-    <div id="chart_div"></div>
+    <div class="row ml-0 mr-0">
+        <div class="col-md p-0 p-md-1">
+            <h2 class="h4 text-muted">Group Standings</h2>
+            <div id="chart_div"></div>
+        </div>
+    </div>
     
 {% endblock %}
 {% block scripts %}
@@ -135,10 +139,11 @@
     {% endcache -%}
     
     var options = {
-      title: 'Group Standings',
+      title: '',
       curveType: 'function',
       interpolateNulls: true,
       pointSize: 5,
+      chartArea: {top:10, left:30, width:'98%'},
       focusTarget: 'category',
       legend: { position: 'bottom' }
     };
