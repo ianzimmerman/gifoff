@@ -204,6 +204,9 @@ class Group(Base):
             data[r.challenge_id][r.player_id] = r.mu
             if r.challenge: challenges[r.challenge_id] = r.challenge.name
         
+        
+        results['rows'].append({'c': [{'v': 'Baseline' }] + [{'v': 25.00} for p in players]})
+        
         for c in self.challenges[-5:]:
             ds = data.get(c.id)
             if ds:
