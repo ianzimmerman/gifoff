@@ -74,7 +74,7 @@
             <div class="list-group">
                 {% set bg_color = ['lightyellow', 'whitesmoke', 'antiquewhite'] %}
                 {% set color = ['gold', 'silver', 'sienna'] %}
-                {% for l in group.leaders %}
+                {% for l in group.leaders(3) %}
                     <span class="list-group-item" style="background-color: {{ bg_color[loop.index-1] }}">
                         <i class="fa fa-trophy mr-3" style="color: {{ color[loop.index-1] }}; font-size: x-large"></i> 
                         <p class="lead mb-0">{{ l.player.username }}</p>
