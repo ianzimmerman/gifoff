@@ -1,25 +1,29 @@
 {% extends "layout.html" %}
-{% from "macros.html" import challenge_list %}
+{% from "macros.html" import challenge_list, back_button %}
 {% block title %}Groups{% endblock %}
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" />
 {% endblock %}
 {% block content %}
     <div class="d-flex mt-2">
-          {% if current_user in group.authors and group.incomplete_count == 0 %}
+        <span class="mr-auto">
+            {{ back_button("Home", url_for('main.index')) }}
+        </span>
+        {% if current_user in group.authors and group.incomplete_count == 0 %}
             <a href="{{ url_for('main.new_challenge', group_id=group) }}" class="btn btn-sm btn-primary">
                 <i class="fa fa-fw fa-plus-square"></i> New Challenge
             </a>
-          {% endif %}
-          {% if current_user == group.owner %}
-                <a href="{{ url_for('main.delete', model='group', model_id=group.id) }}" class="ml-auto btn btn-sm btn-danger" onclick="return confirm('Really?')">
-                    <i class="fa fa-trash"></i> Delete Group
-                </a>
-                {% else %}
-                <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="ml-auto btn btn-sm btn-warning" onclick="return confirm('Really?')">
-                    <i class="fa fa-sign-out"></i> Leave Group
-                </a>
-                {% endif %}
+        {% endif %}
+        {% if current_user == group.owner %}
+            <a href="{{ url_for('main.delete', model='group', model_id=group.id) }}" 
+                class="ml-1 btn btn-sm btn-danger" onclick="return confirm('Really?')">
+                <i class="fa fa-trash"></i> Delete Group
+            </a>
+            {% else %}
+            <a href="{{ url_for('main.leave_group', group_id=group.id) }}" class="ml-1 btn btn-sm btn-warning" onclick="return confirm('Really?')">
+                <i class="fa fa-sign-out"></i> Leave Group
+            </a>
+        {% endif %}
     </div>
     <div class="row ml-0 mr-0">
         <div class="col-12 p-0 p-md-1">
@@ -27,16 +31,6 @@
             <p class="text-muted" style="margin-top: 0">owned by {{ group.owner.username }}</p>
             {% if group.description %}
                 <blockquote class="blockquote">{{ group.description }}</blockquote>
-            {% endif %}
-            {% if current_user == group.owner %}
-                <form id="authForm" class="form-group">
-                <label for="authors">Manage Authors</label>
-                <select name="authors" id="authors" class="form-control" multiple>
-                    {% for p in group.players %}
-                        <option value="{{p.id}}" {{ 'selected' if p in group.authors }}>{{ p.username }}</option>
-                    {% endfor %}  
-                </select>
-                </form>
             {% endif %}
             <div class="input-group input-group-sm mt-2 ml-1 mr-2 hidden-sm-down">
               <span class="input-group-btn">
@@ -52,8 +46,25 @@
             <hr>
         </div>
     </div>
+    
+    <!-- Manage Authors -->
     <div class="row ml-0 mr-0">
-            <div class="col-md p-0 p-md-1">
+        <div class="col-md p-0 p-md-1">
+        {% if current_user == group.owner %}
+            <form id="authForm" class="form-group">
+                <label for="authors" class="h4 text-muted mt-2">Manage Authors</label>
+                <select name="authors" id="authors" class="form-control" style="width: 100%" multiple>
+                    {% for p in group.players %}
+                        <option value="{{p.id}}" {{ 'selected' if p in group.authors }}>{{ p.username }}</option>
+                    {% endfor %}  
+                </select>
+            </form>
+        {% endif %}
+        </div>
+    </div>
+    
+    <div class="row ml-0 mr-0">
+        <div class="col-md p-0 p-md-1">
             <h2 class="h4 text-muted">Active Challenge</h2>
             {{ challenge_list(challenges.active) }}
             
@@ -84,9 +95,11 @@
         </div>
         {% endcache -%}
     </div>
+    <div id="chart_div"></div>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         {% if current_user == group.owner %}
@@ -110,5 +123,23 @@
         });
         
     });
+
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+    var data = new google.visualization.DataTable({{group.leaderboard|safe }});
+
+    var options = {
+      title: 'Group Skill',
+      curveType: 'function',
+      interpolateNulls: true,
+      legend: { position: 'bottom' }
+    };
+
+    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+
+    chart.draw(data, options);
+  }
 </script>
 {% endblock %}

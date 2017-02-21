@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta
 from random import randint
+from collections import defaultdict
 
 import arrow
 import trueskill
+import json
 
 from flask_security import UserMixin, RoleMixin
 from flask_sqlalchemy import SQLAlchemy
 
-from sqlalchemy import func, select, desc
+from sqlalchemy import func, select, desc, and_
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
@@ -100,21 +102,29 @@ class User(Base, UserMixin):
         return round(self.group_score(group)/(self.group_entries(group) or 1), 1)
     
     @hybrid_method
-    def group_rating(self, group):
-        rate_obj = db.session.query(FFARating).filter(FFARating.player==self, FFARating.group==group).first()
+    def group_rating(self, group, challenge=None):
+        rate_obj = db.session.query(FFARating)\
+                             .filter(FFARating.player==self, FFARating.group==group)\
+                             .order_by(FFARating.id.desc()).first()
         if rate_obj:
             return rate_obj.rating
         else:
-            return trueskill.Rating()
+            rate_obj = FFARating(player=self, group=group, challenge=challenge)
+            rate_obj.rating = trueskill.Rating()
+            if db_commit():
+                return rate_obj.rating
+            else:
+                return False
     
     @hybrid_method
-    def update_group_rating(self, group, rating):
-        rate_obj = db.session.query(FFARating).filter(FFARating.player==self, FFARating.group==group).first()
-        if rate_obj:
-            rate_obj.rating = rating
-            db_commit()
+    def update_group_rating(self, challenge, rating):
+        rate_obj = FFARating(player=self, group=challenge.group, challenge=challenge)
+        rate_obj.rating = rating
+        
+        if db_commit():
+            return rate_obj
         else:
-            raise Exception('Entry not found')
+            return False
     
     def __repr__(self):
         return '{}'.format(self.email)
@@ -151,7 +161,10 @@ class Group(Base):
     
     @hybrid_property
     def last_winner(self):
-        last_challenge = db.session.query(Challenge).filter(Challenge.group_id==self.id, Challenge.winner_id!=None).order_by(Challenge.id.desc()).first()
+        last_challenge = db.session.query(Challenge)\
+                                   .filter(Challenge.group_id==self.id, Challenge.winner_id!=None)\
+                                   .order_by(Challenge.id.desc()).first()
+                                   
         if last_challenge:
             return last_challenge.winner
         else:
@@ -159,13 +172,34 @@ class Group(Base):
     
     @hybrid_property
     def leaders(self):
-        this = db.session.query(FFARating)\
-            .filter(FFARating.group==self)\
-            .order_by(desc(FFARating._mu)).limit(3)
-            # .filter(User.id.in_([p.id for p in self.players]))\
-            # .order_by(desc(User.group_score(self))).limit(3)
+        sub_q = db.session.query(func.max(FFARating.id).label("max_id")).group_by(FFARating.player_id).subquery()
         
-        return this
+        q = db.session.query(FFARating).filter(FFARating.group==self)\
+                      .join(sub_q, and_(FFARating.id == sub_q.c.max_id))\
+                      .order_by(FFARating._mu.desc()).limit(3)
+
+        return q
+    
+    @hybrid_property
+    def leaderboard(self):
+        players = sorted([(p.username, p.id) for p in self.players], key=lambda player: player[0].lower())                
+        
+        results = {
+            'cols': [{'id': 'c_id', 'label': 'Challenge ID', 'type': 'string'}]
+                  + [{'id': 'p_id_{}'.format(p[1]), 'label': p[0], 'type': 'number'} for p in players],
+            'rows': []
+        }
+        
+        data = defaultdict(dict)
+        challenges = dict()
+        for r in db.session.query(FFARating).filter(FFARating.group==self):
+            data[r.challenge_id][r.player_id] = r.mu
+            if r.challenge: challenges[r.challenge_id] = r.challenge.name
+        
+        for cid, ds in data.items():
+            results['rows'].append({'c': [{'v': challenges.get(cid, 'Start') }] + [{'v': ds.get(p[1], None)} for p in players]})
+        
+        return json.dumps(results)
           
     def __repr__(self):
         return self.name
@@ -239,13 +273,13 @@ class Challenge(Base):
     @hybrid_property
     def status_tag(self):
         if self.upcoming:
-            return ('Starts {}'.format(self.starts_in), 'info')
+            return ('<i class="fa fa-clock-o"></i> Starts {}'.format(self.starts_in), 'info')
         elif self.active:
-            return ('Ends {}'.format(self.time_left), 'warning')
+            return ('<i class="fa fa-clock-o"></i> Ends {}'.format(self.time_left), 'warning')
         elif self.pending:
-            return ('With Judge', 'default')
+            return ('<i class="fa fa-gavel"></i> With {}'.format(self.judge.username), 'default')
         elif self.complete:
-            return ('Complete', 'success')
+            return ('<i class="fa fa-check"></i> Complete', 'success')
         
         return False 
     
@@ -435,6 +469,9 @@ class FFARating(Base):
     
     group_id = db.Column(db.Integer(), db.ForeignKey(Group.id))
     group = db.relationship('Group', backref=db.backref('ffa_ratings', lazy='dynamic', cascade='all, delete'))
+    
+    challenge_id = db.Column(db.Integer(), db.ForeignKey(Challenge.id))
+    challenge = db.relationship('Challenge', backref=db.backref('ffa_ratings', lazy='dynamic', cascade='all, delete'))
     
     player_id = db.Column(db.Integer(), db.ForeignKey(User.id))
     player = db.relationship('User', backref=db.backref('ffa_rating', lazy='dynamic', cascade='all, delete'))

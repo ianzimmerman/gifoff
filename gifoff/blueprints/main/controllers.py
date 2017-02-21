@@ -154,7 +154,7 @@ def close(challenge_id):
             challenge.winner = winner
             
             if len(challenge.players) > 1:
-                ratings = sorted([(p, challenge.player_score(p), FFARating.get_or_create(player=p, group=challenge.group).rating) 
+                ratings = sorted([(p, challenge.player_score(p), p.group_rating(challenge.group)) 
                                    for p in challenge.players if challenge.player_score(p) > 0.0], key=lambda entry: entry[1], reverse=True)
     
                 new_ratings = trueskill.rate([(r[2],) for r in ratings])
@@ -162,7 +162,7 @@ def close(challenge_id):
                 player_ratings = zip([p[0] for p in ratings], [r[0] for r in new_ratings])
                 
                 for player, new_rating in player_ratings:
-                    player.update_group_rating(challenge.group, new_rating)
+                    player.update_group_rating(challenge, new_rating)
             
             if db_commit():
                 clear_keys(cache, ['leaders{}'.format(challenge.group.id),

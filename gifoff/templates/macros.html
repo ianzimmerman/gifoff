@@ -24,23 +24,32 @@
 </nav>
 {% endmacro %}
 
+{% macro back_button(text, url) %}
+<nav>
+    <a href="{{ url }}" 
+        class="nav-link p-0">
+        <i class="fa fa-chevron-left"></i> <strong>{{ text }}</strong>
+    </a>
+</nav>
+{% endmacro %}
+
 {% macro challenge_list(challenges, group=none) %}
 <div class="list-group">
 {% for c in challenges %}
     <a href="{{ url_for('main.challenge', group_id=c.group, challenge_id=c) }}" 
-        class="list-group-item list-group-item-info list-group-item-action d-flex flex-row justify-content-between"> 
-        <div class="flex-column">
-            <div class="lead mt-0 mb-0">
+        class="list-group-item list-group-item-info list-group-item-action d-flex flex-row justify-content-between p-2"> 
+        <div class="d-flex-column justify-content-between">
+            <div class="lead mt-0 mb-1">
                 {{ c.name[:34] }}
             </div>
-            <div class="mt-0">
+            <div class="d-flex mt-0">
                 {% if group %}
-                    <span class="badge badge-default">{{c.group}}</span>
+                    <span class="mr-1 badge badge-primary"><i class="fa fa-users"></i> {{c.group}}</span>
                 {% endif %}
                 {{ status_tag(c) }}
             </div>
         </div>
-        <i class="fa fa-chevron-circle-right align-self-center" aria-hidden="true" style="font-size: xx-large"></i>
+        <i class="fa fa-chevron-circle-right align-self-center m-2" aria-hidden="true" style="font-size: xx-large"></i>
     </a>
 {% else %}
     <span class="list-group-item list-group-item-warning">No Challenges</span>
@@ -89,5 +98,5 @@
 {% endmacro %}
 
 {% macro status_tag(challenge) %}
-    <span class="badge badge-{{ challenge.status_tag[1] }}">{{ challenge.status_tag[0]|safe }}</span>
+    <span class="mr-1 badge badge-{{ challenge.status_tag[1] }}">{{ challenge.status_tag[0]|safe }}</span>
 {% endmacro %}

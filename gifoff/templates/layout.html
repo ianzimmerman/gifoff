@@ -154,7 +154,7 @@
                     // Stop the default behavior of the browser, which
                     // is to change the URL of the page.
                     //event.preventDefault();
-                    if ($( event.target ).prop( "tagName" ) !== "IMG")
+                    if (!$( event.target ).attr( "exempt" ) == "true")
                     event.preventDefault();
             
                     // Manually change the location of the page to stay in
