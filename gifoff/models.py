@@ -178,9 +178,12 @@ class Group(Base):
     
     @hybrid_method
     def leaders(self, top=None):
-        sub_q = db.session.query(func.max(FFARating.id).label("max_id")).group_by(FFARating.player_id).subquery()
+        sub_q = db.session.query(func.max(FFARating.id).label("max_id"))\
+                          .filter(FFARating.group==self)\
+                          .group_by(FFARating.player_id).subquery()
         
-        q = db.session.query(FFARating).filter(FFARating.group==self)\
+        q = db.session.query(FFARating)\
+                      .filter(FFARating.group==self)\
                       .join(sub_q, and_(FFARating.id == sub_q.c.max_id))\
                       .order_by(FFARating._mu.desc())
         
