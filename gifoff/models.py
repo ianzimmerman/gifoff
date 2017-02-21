@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from random import randint
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 import arrow
 import trueskill
@@ -171,13 +171,21 @@ class Group(Base):
             return None
     
     @hybrid_property
-    def leaders(self):
+    def player_ratings(self):
+        q = db.session.query(FFARating)\
+                      .filter(FFARating.group==group)\
+                      .order_by(FFARating.id.desc()).first()
+    
+    @hybrid_method
+    def leaders(self, top=None):
         sub_q = db.session.query(func.max(FFARating.id).label("max_id")).group_by(FFARating.player_id).subquery()
         
         q = db.session.query(FFARating).filter(FFARating.group==self)\
                       .join(sub_q, and_(FFARating.id == sub_q.c.max_id))\
-                      .order_by(FFARating._mu.desc()).limit(3)
-
+                      .order_by(FFARating._mu.desc())
+        
+        if top: q = q.limit(top)
+        
         return q
     
     @hybrid_property
@@ -196,8 +204,15 @@ class Group(Base):
             data[r.challenge_id][r.player_id] = r.mu
             if r.challenge: challenges[r.challenge_id] = r.challenge.name
         
-        for cid, ds in data.items():
-            results['rows'].append({'c': [{'v': challenges.get(cid, 'Start') }] + [{'v': ds.get(p[1], None)} for p in players]})
+        for c in self.challenges[-5:]:
+            ds = data.get(c.id)
+            if ds:
+                results['rows'].append({'c': [{'v': c.name }] + [{'v': ds.get(p[1], None)} for p in players]})
+        
+        current_scores = {p.player.id: p.mu for p in self.leaders()}
+        #print(current_scores)
+        
+        results['rows'].append({'c': [{'v': 'Current Standings' }] + [{'v': current_scores.get(p[1], None)} for p in players]})
         
         return json.dumps(results)
           
